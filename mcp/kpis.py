@@ -152,8 +152,42 @@ KPIS: list[dict] = [
              GROUP BY 1 ORDER BY 1""",
       note="esukh.propertyOwnerHistory: one row per owner change of a property (previous -> current owner), since 2025-07. "
            "The free-text actionText is not loaded."),
- dict(id=22, title="Шинэ өмчлөгчийн загвар", status="unavailable", needs="ownerHistory timestamps + room link"),
- dict(id=23, title="Хуучин өмчлөгчийн загвар", status="unavailable", needs="ownerHistory timestamps"),
+ dict(id=22, title="Шинэ өмчлөгчийн загвар", status="partial",
+      sql="""WITH h AS (SELECT currentUserId AS uid, propertyId AS pid, createdAt FROM silver.esukh_propertyownerhistory
+                           WHERE currentUserId IS NOT NULL AND createdAt >= '{start}' AND createdAt < '{end}'),
+                  p AS (SELECT id, branchId, roomCount, propertyType FROM silver.esukh_property),
+                  o AS (SELECT h.uid, h.pid, op.branchId AS o_branch, op.roomCount AS o_rooms, np.branchId AS n_branch
+                        FROM h JOIN silver.esukh_userproperty up ON up.userId = h.uid AND up.propertyId <> h.pid
+                        JOIN p op ON op.id = up.propertyId AND op.propertyType = 1
+                        JOIN p np ON np.id = h.pid)
+             SELECT {grain_createdAt} AS period, COUNT(DISTINCT h.uid) AS new_owners,
+                    COUNT(DISTINCT o.uid) AS new_owners_with_other_dwelling,
+                    COUNT(DISTINCT CASE WHEN o.o_branch = o.n_branch THEN o.uid END) AS new_owners_other_same_soh,
+                    COUNT(DISTINCT CASE WHEN o.o_branch <> o.n_branch THEN o.uid END) AS new_owners_other_soh,
+                    ROUND(AVG(o.o_rooms), 2) AS avg_rooms_other_dwelling
+             FROM h LEFT JOIN o ON o.uid = h.uid AND o.pid = h.pid
+             GROUP BY 1 ORDER BY 1""",
+      note="New owner (currentUserId) of an owner change (esukh.propertyOwnerHistory) and their OTHER dwellings (propertyType 1) linked in userproperty: "
+           "in the same СӨХ as the changed property or another, and their room count. userproperty has no dates, so 'other' means "
+           "currently linked, not necessarily before the change. People are joined by userId token (namespaces unified 2026-10-22)."),
+ dict(id=23, title="Хуучин өмчлөгчийн загвар", status="partial",
+      sql="""WITH h AS (SELECT prevUserId AS uid, propertyId AS pid, createdAt FROM silver.esukh_propertyownerhistory
+                           WHERE prevUserId IS NOT NULL AND createdAt >= '{start}' AND createdAt < '{end}'),
+                  p AS (SELECT id, branchId, roomCount, propertyType FROM silver.esukh_property),
+                  o AS (SELECT h.uid, h.pid, op.branchId AS o_branch, op.roomCount AS o_rooms, np.branchId AS n_branch
+                        FROM h JOIN silver.esukh_userproperty up ON up.userId = h.uid AND up.propertyId <> h.pid
+                        JOIN p op ON op.id = up.propertyId AND op.propertyType = 1
+                        JOIN p np ON np.id = h.pid)
+             SELECT {grain_createdAt} AS period, COUNT(DISTINCT h.uid) AS prev_owners,
+                    COUNT(DISTINCT o.uid) AS prev_owners_with_other_dwelling,
+                    COUNT(DISTINCT CASE WHEN o.o_branch = o.n_branch THEN o.uid END) AS prev_owners_other_same_soh,
+                    COUNT(DISTINCT CASE WHEN o.o_branch <> o.n_branch THEN o.uid END) AS prev_owners_other_soh,
+                    ROUND(AVG(o.o_rooms), 2) AS avg_rooms_other_dwelling
+             FROM h LEFT JOIN o ON o.uid = h.uid AND o.pid = h.pid
+             GROUP BY 1 ORDER BY 1""",
+      note="Previous owner (prevUserId) of an owner change (esukh.propertyOwnerHistory) and their OTHER dwellings (propertyType 1) linked in userproperty: "
+           "in the same СӨХ as the changed property or another, and their room count. userproperty has no dates, so 'other' means "
+           "currently linked, not necessarily before the change. People are joined by userId token (namespaces unified 2026-10-22)."),
  dict(id=24, title="Түр нэвтрэх зөвшөөрөлтэй / нэвтэрсэн хэрэглэгч", status="unavailable", needs="parkly guest/visitor access tables (not in the 27 'Normal' tables)"),
  dict(id=25, title="Түр нэвтрэх эрх олгосон / түр нэвтэрсэн автомашин", status="available",
       sql="""WITH guest AS (SELECT c.id, c.carId, c.createdAt FROM silver.parkly_carconfig c

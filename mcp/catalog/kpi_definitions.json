@@ -236,7 +236,7 @@
   },
   {
    "id": 21,
-   "title": "Өмчлөлийн шилжилтийн тоо (өдөр/7 хоног/сар)",
+   "title": "Өмчлөгч өөрчлөгдсөн тохиолдлын тоо",
    "status": "available",
    "definition_mn": "Өмчлөгч өөрчлөгдсөн тохиолдлын тоо, өдрөөр / 7 хоногоор / сараар",
    "definition_en": "Number of ownership changes, by day / week / month.",
@@ -248,18 +248,28 @@
   {
    "id": 22,
    "title": "Шинэ өмчлөгчийн загвар",
-   "status": "unavailable",
+   "status": "partial",
    "definition_mn": "Шинэ өмчлөгчийн загвар (өмнө нь аль хотхонд, хэдэн өрөөнд амьдарч байсан)",
    "definition_en": "New-owner profile: which complex and how many rooms they lived in before.",
-   "missing": "ownerHistory timestamps + room link"
+   "source_tables": [
+    "silver.esukh_property",
+    "silver.esukh_propertyownerhistory",
+    "silver.esukh_userproperty"
+   ],
+   "caveat": "New owner (currentUserId) of an owner change (esukh.propertyOwnerHistory) and their OTHER dwellings (propertyType 1) linked in userproperty: in the same СӨХ as the changed property or another, and their room count. userproperty has no dates, so 'other' means currently linked, not necessarily before the change. People are joined by userId token (namespaces unified 2026-10-22)."
   },
   {
    "id": 23,
    "title": "Хуучин өмчлөгчийн загвар",
-   "status": "unavailable",
+   "status": "partial",
    "definition_mn": "Хуучин өмчлөгчийн загвар (аль хотхонд бүртгэгдсэн)",
    "definition_en": "Previous-owner profile: which complex they were registered in.",
-   "missing": "ownerHistory timestamps"
+   "source_tables": [
+    "silver.esukh_property",
+    "silver.esukh_propertyownerhistory",
+    "silver.esukh_userproperty"
+   ],
+   "caveat": "Previous owner (prevUserId) of an owner change (esukh.propertyOwnerHistory) and their OTHER dwellings (propertyType 1) linked in userproperty: in the same СӨХ as the changed property or another, and their room count. userproperty has no dates, so 'other' means currently linked, not necessarily before the change. People are joined by userId token (namespaces unified 2026-10-22)."
   },
   {
    "id": 24,
