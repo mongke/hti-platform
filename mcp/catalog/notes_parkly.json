@@ -1,0 +1,608 @@
+{
+  "systems": {
+    "parkly": {
+      "description": "Parkly is one of Hubilai Tech's (HTI) apps: a parking system on its own PostgreSQL database covering parks, gates and branches, vehicles and access events, cameras, payments/pricing, and a delivery-vehicle parking service (69 tables). Only the tables the parkly team classified Normal are in the lake; the plate and vehicle-movement core (car, carConfig, inOutHistory, inRecord, Payments, worker, branch, ...) is classified Red and not copied, and people/vehicles appear only as UUID tokens."
+    }
+  },
+  "tables": {
+    "bronze_ref.parkly_accesstime": {
+      "description": "Pre-silver staging copy of silver.parkly_accesstime with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One accessTime record per row, carrying a parkId; parkly domain D1 (Parks, gates & branches). The parkly team classified this table Normal (privacy PDF, 2026-10-02). The meaning of hourType is not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_branch_types": {
+      "description": "Pre-silver staging copy of silver.parkly_branch_types with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Lookup of parkly branch types (domain D1). Only id and timestamps are in the lake: type_name and description are excluded by the identity/free-text filter, so the type labels are not available. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key of the branch type.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_branchexternalsystem": {
+      "description": "Pre-silver staging copy of silver.parkly_branchexternalsystem with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One row per link between a parkly branch and an external system (source DDL comment); answers which branches are connected to which external systems and whether the link is active. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "branchId": "Parkly branch id (FK to branch (target table is classified Red and not in the lake)).",
+        "externalBranchId": "The branch's ID/code inside the external system (source DDL comment).",
+        "config": "System-specific JSON configuration for the link, e.g. apiUrl, apiKey (source DDL comment).",
+        "isActive": "Whether the link is active (default true).",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_compareprocess": {
+      "description": "Pre-silver staging copy of silver.parkly_compareprocess with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. compareProcess records per branch and park (parkly domain D2 Vehicles & access events). The parkly team classified this table Normal (privacy PDF, 2026-10-02). Column meanings are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "beginDate": "Begin date (exact source value; truncated to the hour only in silver).",
+        "endDate": "End date (exact source value; truncated to the hour only in silver).",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_delivery_branch_park": {
+      "description": "Pre-silver staging copy of silver.parkly_delivery_branch_park with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One row per park a delivery organisation (branch) is allowed to use, applicable when delivery_branch_settings.allow_all_parks = false (source DDL comment). Answers which parks each delivery branch may use.",
+      "key": "id",
+      "time_column": "created_at",
+      "joins": [
+        "park_id -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "Delivery organisation's branch id (FK to branch (target table is classified Red and not in the lake)).",
+        "park_id": "Allowed park (FK to park.id).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "created_at": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updated_at": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_delivery_branch_settings": {
+      "description": "Pre-silver staging copy of silver.parkly_delivery_branch_settings with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One row per branch with the delivery service's settings (one-to-one with branch, source DDL comment): service type, approval, pricing, payment mode, wallet and credit. Answers which branches use the delivery service and on what terms. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "created_at",
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "The branch these settings belong to, one-to-one (FK to branch (target table is classified Red and not in the lake)).",
+        "service_type": "Delivery service tier, enum: premium | enterprise (default premium).",
+        "payment_mode": "Enum: prepaid | postpaid (default prepaid).",
+        "approved_by": "Worker id of the approver (FK to worker (target table is classified Red and not in the lake)).",
+        "allow_all_parks": "TRUE = the branch may use all parks with public cameras; FALSE = only the parks listed in delivery_branch_park (source DDL comment).",
+        "is_active": "Active flag (default false).",
+        "is_approved": "Approved flag (default false).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "approved_at": "Approval timestamp (exact source value; truncated to the hour only in silver).",
+        "last_usage_date": "Last usage date (exact source value; truncated to the hour only in silver).",
+        "created_at": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updated_at": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_delivery_pricing_config": {
+      "description": "Pre-silver staging copy of silver.parkly_delivery_pricing_config with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Price settings of the parkly delivery system, edited by admins (source DDL comment); one row per pricing key such as monthly_slot_price or usage_price. Answers what the configured delivery prices are.",
+      "key": "id",
+      "time_column": "updated_at",
+      "columns": {
+        "id": "Primary key.",
+        "config_key": "Settings key, e.g. monthly_slot_price, usage_price (source DDL comment); lowercase letters and underscores only.",
+        "config_value": "Price amount in tugrik (₮) (source DDL comment).",
+        "sort_order": "Display/sort order (source DDL comment).",
+        "updated_by": "Worker id of the last editor (FK to worker (target table is classified Red and not in the lake)).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "created_at": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updated_at": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_delivery_slot": {
+      "description": "Pre-silver staging copy of silver.parkly_delivery_slot with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One row per delivery slot purchase by a branch; one slot covers many vehicles (source DDL comment). Answers how many slots were bought, of which type, at what price and in which status. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "start_date",
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "Purchasing branch (FK to branch (target table is classified Red and not in the lake)).",
+        "slot_type": "Enum: daily | weekly | monthly | yearly (default monthly).",
+        "status": "Enum: active | expired | cancelled | pending | rejected (default active).",
+        "max_vehicles": "How many vehicles may be registered on the slot (Premium: 1) (source DDL comment); must be > 0.",
+        "payment_id": "Payment record (FK to delivery_payment (target table is classified Red and not in the lake)).",
+        "created_by": "Worker id of the creator (FK to worker (target table is classified Red and not in the lake)).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "start_date": "Slot start (exact source value; truncated to the hour only in silver).",
+        "end_date": "Slot end; must be after start_date (exact source value; truncated to the hour only in silver).",
+        "created_at": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updated_at": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_delivery_wallet_transaction": {
+      "description": "Pre-silver staging copy of silver.parkly_delivery_wallet_transaction with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One row per delivery-wallet transaction of a branch: the wallet transaction history / audit trail (source DDL comment). Answers deposits, deductions, refunds and penalties over time and the resulting balances. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "created_at",
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "Branch whose wallet it is (FK to branch (target table is classified Red and not in the lake)).",
+        "type": "Transaction type, enum: deposit | deduct | refund | penalty.",
+        "amount": "Transaction amount; constrained to >= 0.",
+        "balance_after": "Wallet balance after the transaction; constrained to >= 0.",
+        "related_type": "Type of the related entity (source DDL comment), enum: slot | usage | invoice | manual.",
+        "related_id": "ID of the related entity (source DDL comment).",
+        "status": "Enum: pending | completed | failed | cancelled (default completed).",
+        "created_by": "Worker id of the creator (FK to worker (target table is classified Red and not in the lake)).",
+        "approved_by": "Worker id of the approver (FK to worker (target table is classified Red and not in the lake)).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "created_at": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updated_at": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_discounts": {
+      "description": "Pre-silver staging copy of silver.parkly_discounts with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Discount definitions (parkly domain D4 Payments & pricing), referenced by groupDiscount.discountId. The name column is not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key; referenced by groupDiscount.discountId.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_externalsystem": {
+      "description": "Pre-silver staging copy of silver.parkly_externalsystem with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Registry of the external systems parkly connects to (source DDL comment), e.g. ESUKH, ODYSSEY, OASIS. Answers which integrations exist and are active. Name, description and API credentials are not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "code": "System code: ESUKH, ODYSSEY, OASIS, CUSTOM... (source DDL comment).",
+        "dataSchema": "Schema (fields[]) of the externalData field kept for this system (source DDL comment).",
+        "isActive": "Active flag (default true).",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_gate": {
+      "description": "Pre-silver staging copy of silver.parkly_gate with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Gate records (parkly domain D1 Parks, gates & branches). Name and desc are not copied. Note branchId and parkId are strings in the source (varchar, no FK), so cast before joining. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "isDeleted": "Soft-delete flag (default false).",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_group": {
+      "description": "Pre-silver staging copy of silver.parkly_group with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Car groups referenced by carConfig.groupId and groupDiscount.groupId (FKs) (parkly domain D1). The name is not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key; referenced by carConfig.groupId and groupDiscount.groupId.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_parkaccessconfig": {
+      "description": "Pre-silver staging copy of silver.parkly_parkaccessconfig with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One row per park's access configuration: configured counts and limits of permanent and temporary cars. Answers KPI 29 (permanent-access cars vs capacity) and partly KPI 25 (temporary access); it holds configured counts, not actual entries. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "updatedAt",
+      "joins": [
+        "parkId -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "parkId": "Park the configuration belongs to; joined to park.id by KPI 25/29.",
+        "permaCar": "Configured number of cars with permanent access (KPI 29; default 0). A count, not a car reference.",
+        "permaLimit": "Limit for permanent-access cars (KPI 29).",
+        "tempCar": "Configured number of temporary-access cars (KPI 25; default 0). A count, not a car reference.",
+        "tempLimit": "Limit for temporary-access cars (KPI 25).",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_parkcarmirror": {
+      "description": "Pre-silver staging copy of silver.parkly_parkcarmirror with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. One row per park-level one-way car mirror rule (source → target) (source DDL comment): cars added to the source park are also added to the target park. Answers which parks share/copy their car lists. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "joins": [
+        "sourceParkId -> silver.parkly_park.id",
+        "targetParkId -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "sourceParkId": "Park where adding a car starts the mirror (source DDL comment; FK to park.id).",
+        "targetParkId": "Park the car is additionally added to (source DDL comment; FK to park.id); never equal to sourceParkId.",
+        "targetGroupId": "Group on the target park; null = use the source groupId (source DDL comment).",
+        "isActive": "Active flag (default true).",
+        "isDeleted": "Soft-delete flag (integer, default 0).",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_parkfee": {
+      "description": "Pre-silver staging copy of silver.parkly_parkfee with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Park fee configuration per branch, park and group (parkly domain D1 Parks, gates & branches). The parkly team classified this table Normal (privacy PDF, 2026-10-02). Column meanings (formula, validPeriod, calcRules) are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_paymentoptions": {
+      "description": "Pre-silver staging copy of silver.parkly_paymentoptions with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. Lookup of payment options (parkly domain D4), referenced by Payments.payment_options_id and delivery_payment.payment_option_id (both Red, not in the lake). The name column is not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key; referenced by Payments and delivery_payment.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_qrcodecontroller": {
+      "description": "Pre-silver staging copy of silver.parkly_qrcodecontroller with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. QR-code controller records per branch, park and camera (parkly domain D3 Cameras & devices). The parkly team classified this table Normal (privacy PDF, 2026-10-02). Column meanings are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "bronze_ref.parkly_spaychecklog": {
+      "description": "Pre-silver staging copy of silver.parkly_spaychecklog with exact (untruncated) timestamps; bronze holds only recent loads and silver is the system of record (claude.md G20), so prefer the silver table. spayCheckLog records (parkly domain D4 Payments & pricing). Caution: the parkly team's privacy PDF classifies spayCheckLog as Red, yet it is loaded; column meanings are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (exact source value; truncated to the hour only in silver).",
+        "updatedAt": "Last-updated timestamp (exact source value; truncated to the hour only in silver)."
+      }
+    },
+    "silver.parkly_accesstime": {
+      "description": "One accessTime record per row, carrying a parkId; parkly domain D1 (Parks, gates & branches). The parkly team classified this table Normal (privacy PDF, 2026-10-02). The meaning of hourType is not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_branch_types": {
+      "description": "Lookup of parkly branch types (domain D1). Only id and timestamps are in the lake: type_name and description are excluded by the identity/free-text filter, so the type labels are not available. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key of the branch type.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_branchexternalsystem": {
+      "description": "One row per link between a parkly branch and an external system (source DDL comment); answers which branches are connected to which external systems and whether the link is active. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "branchId": "Parkly branch id (FK to branch (target table is classified Red and not in the lake)).",
+        "externalBranchId": "The branch's ID/code inside the external system (source DDL comment).",
+        "config": "System-specific JSON configuration for the link, e.g. apiUrl, apiKey (source DDL comment).",
+        "isActive": "Whether the link is active (default true).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_camera_health_log": {
+      "description": "Camera health log for parkly cameras (domain D3 Cameras & devices). The parkly team classified this table Normal (privacy PDF, 2026-10-02). Silver is the system of record and holds the accumulated history (~196k rows vs ~1.4k in the daily bronze load, claude.md G20), so query silver, not bronze.",
+      "key": "id",
+      "time_column": "offlineAt",
+      "columns": {
+        "id": "Primary key.",
+        "processedPlates": "Integer counter in the source (integer DEFAULT 0), not a person or plate reference. Rows tokenised before the 2026-10 rule fix may still hold UUIDs here until a reload (claude.md G19); stored as string in silver.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_compare": {
+      "description": "One row per discrepancy found when reconciling a car's registration in parkly (carConfig) against the list held on the camera: 'parkly' = car is in carConfig but missing on the camera, 'camera' = on the camera but not in carConfig (source DDL comments). Answers how often camera and parkly lists disagree per park. Loaded in full each run (the source table has no updatedAt). The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "compare_id",
+      "time_column": "createdAt",
+      "columns": {
+        "compare_id": "Primary key.",
+        "device": "Where the car is present: 'parkly' = in carConfig but not on the camera; 'camera' = on the camera but not in carConfig (source DDL comment). Rows written before the 2026-10 rule fix may hold UUIDs instead (claude.md G19).",
+        "type": "Kind of discrepancy: add or remove, or the car's validity has expired but it remains (not deleted) on the camera; the front end shows it as 'not expired' / asks whether to add or remove (source DDL comment).",
+        "plateNumber": "UUID token of the vehicle plate number - not the real plate.",
+        "owner": "UUID token of the owner - not a real identity.",
+        "beginDate": "Begin date (truncated to the hour).",
+        "endDate": "End date (truncated to the hour).",
+        "createdAt": "Created timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_compareprocess": {
+      "description": "compareProcess records per branch and park (parkly domain D2 Vehicles & access events). The parkly team classified this table Normal (privacy PDF, 2026-10-02). Column meanings are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "beginDate": "Begin date (truncated to the hour).",
+        "endDate": "End date (truncated to the hour).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_delivery_branch_park": {
+      "description": "One row per park a delivery organisation (branch) is allowed to use, applicable when delivery_branch_settings.allow_all_parks = false (source DDL comment). Answers which parks each delivery branch may use.",
+      "key": "id",
+      "time_column": "created_at",
+      "joins": [
+        "park_id -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "Delivery organisation's branch id (FK to branch (target table is classified Red and not in the lake)).",
+        "park_id": "Allowed park (FK to park.id).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "created_at": "Created timestamp (truncated to the hour).",
+        "updated_at": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_delivery_branch_settings": {
+      "description": "One row per branch with the delivery service's settings (one-to-one with branch, source DDL comment): service type, approval, pricing, payment mode, wallet and credit. Answers which branches use the delivery service and on what terms. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "created_at",
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "The branch these settings belong to, one-to-one (FK to branch (target table is classified Red and not in the lake)).",
+        "service_type": "Delivery service tier, enum: premium | enterprise (default premium).",
+        "payment_mode": "Enum: prepaid | postpaid (default prepaid).",
+        "approved_by": "Worker id of the approver (FK to worker (target table is classified Red and not in the lake)).",
+        "allow_all_parks": "TRUE = the branch may use all parks with public cameras; FALSE = only the parks listed in delivery_branch_park (source DDL comment).",
+        "is_active": "Active flag (default false).",
+        "is_approved": "Approved flag (default false).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "approved_at": "Approval timestamp (truncated to the hour).",
+        "last_usage_date": "Last usage date (truncated to the hour).",
+        "created_at": "Created timestamp (truncated to the hour).",
+        "updated_at": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_delivery_pricing_config": {
+      "description": "Price settings of the parkly delivery system, edited by admins (source DDL comment); one row per pricing key such as monthly_slot_price or usage_price. Answers what the configured delivery prices are.",
+      "key": "id",
+      "time_column": "updated_at",
+      "columns": {
+        "id": "Primary key.",
+        "config_key": "Settings key, e.g. monthly_slot_price, usage_price (source DDL comment); lowercase letters and underscores only.",
+        "config_value": "Price amount in tugrik (₮) (source DDL comment).",
+        "sort_order": "Display/sort order (source DDL comment).",
+        "updated_by": "Worker id of the last editor (FK to worker (target table is classified Red and not in the lake)).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "created_at": "Created timestamp (truncated to the hour).",
+        "updated_at": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_delivery_slot": {
+      "description": "One row per delivery slot purchase by a branch; one slot covers many vehicles (source DDL comment). Answers how many slots were bought, of which type, at what price and in which status. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "start_date",
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "Purchasing branch (FK to branch (target table is classified Red and not in the lake)).",
+        "slot_type": "Enum: daily | weekly | monthly | yearly (default monthly).",
+        "status": "Enum: active | expired | cancelled | pending | rejected (default active).",
+        "max_vehicles": "How many vehicles may be registered on the slot (Premium: 1) (source DDL comment); must be > 0.",
+        "payment_id": "Payment record (FK to delivery_payment (target table is classified Red and not in the lake)).",
+        "created_by": "Worker id of the creator (FK to worker (target table is classified Red and not in the lake)).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "start_date": "Slot start (truncated to the hour).",
+        "end_date": "Slot end; must be after start_date (truncated to the hour).",
+        "created_at": "Created timestamp (truncated to the hour).",
+        "updated_at": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_delivery_wallet_transaction": {
+      "description": "One row per delivery-wallet transaction of a branch: the wallet transaction history / audit trail (source DDL comment). Answers deposits, deductions, refunds and penalties over time and the resulting balances. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "created_at",
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "Branch whose wallet it is (FK to branch (target table is classified Red and not in the lake)).",
+        "type": "Transaction type, enum: deposit | deduct | refund | penalty.",
+        "amount": "Transaction amount; constrained to >= 0.",
+        "balance_after": "Wallet balance after the transaction; constrained to >= 0.",
+        "related_type": "Type of the related entity (source DDL comment), enum: slot | usage | invoice | manual.",
+        "related_id": "ID of the related entity (source DDL comment).",
+        "status": "Enum: pending | completed | failed | cancelled (default completed).",
+        "created_by": "Worker id of the creator (FK to worker (target table is classified Red and not in the lake)).",
+        "approved_by": "Worker id of the approver (FK to worker (target table is classified Red and not in the lake)).",
+        "is_deleted": "Soft-delete flag (default false).",
+        "created_at": "Created timestamp (truncated to the hour).",
+        "updated_at": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_discounts": {
+      "description": "Discount definitions (parkly domain D4 Payments & pricing), referenced by groupDiscount.discountId. The name column is not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key; referenced by groupDiscount.discountId.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_externalsystem": {
+      "description": "Registry of the external systems parkly connects to (source DDL comment), e.g. ESUKH, ODYSSEY, OASIS. Answers which integrations exist and are active. Name, description and API credentials are not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "code": "System code: ESUKH, ODYSSEY, OASIS, CUSTOM... (source DDL comment).",
+        "dataSchema": "Schema (fields[]) of the externalData field kept for this system (source DDL comment).",
+        "isActive": "Active flag (default true).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_gate": {
+      "description": "Gate records (parkly domain D1 Parks, gates & branches). Name and desc are not copied. Note branchId and parkId are strings in the source (varchar, no FK), so cast before joining. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "isDeleted": "Soft-delete flag (default false).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_group": {
+      "description": "Car groups referenced by carConfig.groupId and groupDiscount.groupId (FKs) (parkly domain D1). The name is not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key; referenced by carConfig.groupId and groupDiscount.groupId.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_guest_payment_config": {
+      "description": "One row per guest-payment setting created when a resident invites a guest (source DDL comment): who pays, whether pre/post-payment is allowed and how overtime is handled. Answers how guest parking is paid for per park. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "created_at",
+      "joins": [
+        "park_id -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "branch_id": "Branch (FK to branch (target table is classified Red and not in the lake)).",
+        "park_id": "Park (FK to park.id).",
+        "guest_car_config_id": "UUID token of the guest's car configuration (carConfig, which carries the guest's beginDate/endDate) - not a real ID.",
+        "resident_user_id": "UUID token of the resident user who invited the guest - not a real ID.",
+        "payment_responsible": "Who pays: resident | guest (source DDL comment and CHECK constraint; default guest).",
+        "allow_prepayment": "Whether paying in advance is allowed (source DDL comment; default true).",
+        "allow_postpayment": "Whether paying later is allowed, i.e. the resident pays afterwards (source DDL comment; default false).",
+        "notify_overtime": "Whether an SMA notification is sent when the time is exceeded (source DDL comment; default true).",
+        "overtime_grace_minutes": "Minutes after the time is exceeded before a fee is charged (source DDL comment; default 15).",
+        "is_active": "Active flag (default true).",
+        "created_at": "Created timestamp (truncated to the hour).",
+        "updated_at": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_park": {
+      "description": "One row per parkly park (parking facility) of a branch; answers park type, capacity, paid/unpaid and parent/child structure. Used by KPI 25 and 29 together with parkly_parkaccessconfig. Park name, register and bank account fields are not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "joins": [
+        "parentParkId -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key; referenced by parkId / park_id in the other parkly tables.",
+        "branchId": "Owning branch (FK to branch (target table is classified Red and not in the lake)).",
+        "parkType": "Park type, enum: Хотхон (residential complex) | Оффис (office) | Төлбөртэй зогсоол (paid parking) | Хүргэлт (delivery).",
+        "parkingSpaces": "Number of parking spaces; KPI 29 uses it as the park's capacity.",
+        "parentParkId": "Parent park (FK to park.id).",
+        "workerId": "UUID token of the worker linked to the park (FK to worker in source) - not a real ID.",
+        "park_uuid": "UUID of the park in the source system (NOT NULL); a source identifier, not a platform token.",
+        "isPaid": "Paid-park flag (default true).",
+        "isDeleted": "Soft-delete flag (integer, default 0).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_parkaccessconfig": {
+      "description": "One row per park's access configuration: configured counts and limits of permanent and temporary cars. Answers KPI 29 (permanent-access cars vs capacity) and partly KPI 25 (temporary access); it holds configured counts, not actual entries. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "updatedAt",
+      "joins": [
+        "parkId -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "parkId": "Park the configuration belongs to; joined to park.id by KPI 25/29.",
+        "permaCar": "Configured number of cars with permanent access (KPI 29; default 0). A count, not a car reference.",
+        "permaLimit": "Limit for permanent-access cars (KPI 29).",
+        "tempCar": "Configured number of temporary-access cars (KPI 25; default 0). A count, not a car reference.",
+        "tempLimit": "Limit for temporary-access cars (KPI 25).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_parkcarmirror": {
+      "description": "One row per park-level one-way car mirror rule (source → target) (source DDL comment): cars added to the source park are also added to the target park. Answers which parks share/copy their car lists. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "joins": [
+        "sourceParkId -> silver.parkly_park.id",
+        "targetParkId -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "sourceParkId": "Park where adding a car starts the mirror (source DDL comment; FK to park.id).",
+        "targetParkId": "Park the car is additionally added to (source DDL comment; FK to park.id); never equal to sourceParkId.",
+        "targetGroupId": "Group on the target park; null = use the source groupId (source DDL comment).",
+        "isActive": "Active flag (default true).",
+        "isDeleted": "Soft-delete flag (integer, default 0).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_parkfee": {
+      "description": "Park fee configuration per branch, park and group (parkly domain D1 Parks, gates & branches). The parkly team classified this table Normal (privacy PDF, 2026-10-02). Column meanings (formula, validPeriod, calcRules) are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_paymentoptions": {
+      "description": "Lookup of payment options (parkly domain D4), referenced by Payments.payment_options_id and delivery_payment.payment_option_id (both Red, not in the lake). The name column is not copied. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key; referenced by Payments and delivery_payment.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_qrcodecontroller": {
+      "description": "QR-code controller records per branch, park and camera (parkly domain D3 Cameras & devices). The parkly team classified this table Normal (privacy PDF, 2026-10-02). Column meanings are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_spaychecklog": {
+      "description": "spayCheckLog records (parkly domain D4 Payments & pricing). Caution: the parkly team's privacy PDF classifies spayCheckLog as Red, yet it is loaded; column meanings are not documented in any source.",
+      "key": "id",
+      "time_column": "createdAt",
+      "columns": {
+        "id": "Primary key.",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    },
+    "silver.parkly_workerpark": {
+      "description": "One row per link between a parkly worker and a park (FKs workerId -> worker, parkId -> park). Answers which workers are assigned to which parks. The parkly team classified this table Normal (privacy PDF, 2026-10-02).",
+      "key": "id",
+      "time_column": "createdAt",
+      "joins": [
+        "parkId -> silver.parkly_park.id"
+      ],
+      "columns": {
+        "id": "Primary key.",
+        "workerId": "UUID token of the worker - not a real ID.",
+        "parkId": "Park (FK to park.id).",
+        "createdAt": "Created timestamp (truncated to the hour).",
+        "updatedAt": "Last-updated timestamp (truncated to the hour)."
+      }
+    }
+  }
+}

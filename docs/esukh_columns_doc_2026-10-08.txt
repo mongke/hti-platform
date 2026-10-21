@@ -1,0 +1,324 @@
+Action   (5 columns)
+id, rootId, name, type, branchPaymentType
+adminAccount   (7 columns)
+id, workerId, status, tokenVersion, createdBy, createdAt, updatedAt
+adminBranchEntry   (10 columns)
+id, adminId, workerId, branchId, adminSessionId, expiresAt, consumedAt, requestId, createdAt, updatedAt
+apartment   (13 columns)
+id, isDeleted, builtDate, branchId, province, district, committee, apartmentName, ortsCount, townId, unitPrice, bankId, khorooid
+apartmentModule   (7 columns)
+id, moduleId, apartmentId, unitPrice, workerId, createdAt, updatedAt
+apartmentpaymentgroup   (4 columns)
+id, branchId, apartmentId, paymentGroupId
+balance   (19 columns)
+id, invoiceMonth, branchId, workerId, transactionDate, apartmentId, propertyId, prevBalance, cost, monthBalance, pay, paymentBalance, regDate, paydBalanceId, paymentType, bankId, townId, userId, paymentGroupId
+balanceGraph   (5 columns)
+id, branchId, regDate, date, townId
+balancehistory   (4 columns)
+id, rootBalanceId, balanceId, amount
+barrier   (8 columns)
+id, branchId, type, barrierName, isActive, interval, apartmentId, subType
+billingLog   (6 columns)
+id, partnerId, partnerName, action, createdAt, updatedAt
+blackListProperty   (8 columns)
+id, propertyId, branchId, isAllBlocked, workerId, blackListPropertyHistoryId, createdAt, updatedAt
+blackListPropertyHistory   (7 columns)
+id, propertyId, branchId, action, regWorkerId, createdAt, updatedAt
+branch   (46 columns)
+id, isActive, name, latinName, province, district, committee, contractDate, endContractDate, expirationDate, chargeCount, bankId, customPrice, defaultPrice, hasDiscount, vatType, vatDistrictCode, branchPaymentType, showPaymentGraph, isAppActive, canUserAddNews, color1, color2, color3, serviceType, subType, workerId, payOffPercent, payOffStartDay, autoApproveDay, canSkipPay, messageLimit, approvationDate, appCarTypes, akrel, khanBeginDate, rate, carLimit, subsOnlyTransaction, canUserDeleteCar, hasBilling, useBasePrice, approveAble, messageMultiply, createdAt, updatedAt
+branchbalance   (9 columns)
+id, branchId, workerId, prevBalance, cost, pay, paymentBalance, regDate, branchInvoiceId
+branchExtraCharge   (6 columns)
+id, branchId, total, count, createdAt, workerId
+branchHelp   (10 columns)
+id, workerId, answerWorkerId, regDate, checkedDate, status, branchId, isRead, isResolved, stage
+taskHistory   (6 columns)
+id, taskId, changedBy, action, fieldName, createdAt
+town   (12 columns)
+id, isDeleted, townName, branchId, province, district, committee, vatType, vatDistrictCode, vatDistrictCodeNew, bankId, stateKhoroo
+townSealImage   (2 columns)
+id, townId
+user   (5 columns)
+id, branchId, getVatType, createdAt, updatedAt
+userAdvertise   (7 columns)
+id, userId, propertyId, branchId, advertiseId, apartmentId, regDate
+userBarrier   (11 columns)
+id, barrierId, townId, apartmentId, userId, propertyId, branchId, startDate, endDate, regDate, disabled
+userFeedback   (11 columns)
+id, userId, tag, complainId, status, closedAt, closedByType, closedById, branchHelpId, createdAt, updatedAt
+userNote   (3 columns)
+id, userId, regDate
+userOpenBarrier   (7 columns)
+id, barrierId, userId, propertyId, openedDate, branchId, action
+userproperty   (9 columns)
+id, userId, propertyId, ownerType, isMessage, active, confirmed, getVatType, isCompany
+work   (10 columns)
+id, branchId, workerId, categoryId, stage, type, startDate, endDate, regDate, isDeleted
+worker   (9 columns)
+id, isDeleted, branchId, positionType, positionId, professionId, isUseManagerApp, createdAt, updatedAt
+workerAction   (3 columns)
+id, workerId, actionId
+workerApartment   (3 columns)
+id, workerId, apartmentId
+workerNotification   (5 columns)
+id, status, workerId, seen, createdAt
+workerRatingDetail   (4 columns)
+id, rateWorkerId, criteriaId, score
+wrongmail   (11 columns)
+id, regDate, fixedDate, workerId, userId, branchId, propertyId, status, apartmentId, vatId, massmailId
+propertyOwnerHistory   (7 columns)
+id, propertyId, currentUserId, prevUserId, workerId, createdAt, updatedAt
+proToPro   (4 columns)
+id, subProId, suutsId, tusdaa
+queue   (7 columns)
+id, action, branchId, regDate, doneDate, processTime, status
+rateBranchInfo   (5 columns)
+id, branchInfoId, rate, workerId, date
+rateCompany   (5 columns)
+id, branchId, rate, workerId, date
+rateWorker   (7 columns)
+id, workerId, raterWorkerId, averageScore, year, month, date
+ratingCriteria   (7 columns)
+id, name, isActive, sortOrder, branchId, createdAt, updatedAt
+reference   (10 columns)
+id, root, name, shortname, date, workerId, order, isDeleted, subType, fromCapital
+room   (9 columns)
+id, name, branchId, hourPrice, type, apartmentId, isDeleted, isPay, size
+roomImage   (2 columns)
+id, roomId
+roomOrder   (16 columns)
+id, roomId, propertyId, userId, startDate, endDate, type, state, workerId, approvedDate, regDate, branchId, apartmentId, minutes, hourPrice, totalPrice
+secondSystem   (7 columns)
+id, code, name, environment, authType, createdAt, updatedAt
+service   (5 columns)
+id, isDeleted, name, date, hasMeter
+signUpLog   (2 columns)
+id, lastStep
+tablename   (3 columns)
+id, table, name
+task   (15 columns)
+id, status, branchId, categoryId, sourceType, createdBy, assignedTo, dueDate, completedDate, isRecurring, lastRecurringDate, parentTaskId, isDeleted, createdAt, updatedAt
+taskAssignment   (7 columns)
+id, taskId, assignedBy, role, isDeleted, createdAt, updatedAt
+taskAttachment   (3 columns)
+id, taskId, type
+taskComment   (6 columns)
+id, taskId, userId, isDeleted, createdAt, updatedAt
+taskCommentAttachment   (2 columns)
+id, taskCommentId
+note   (5 columns)
+id, workerId, propertyId, branchId, regDate
+notification   (5 columns)
+id, status, userId, propertyId, seen
+paymentPartner   (6 columns)
+id, name, type, branchId, billType, order
+phone   (3 columns)
+id, branchId, order
+poll   (11 columns)
+id, workerId, branchId, total_voter, total_voted, startDate, endDate, isDeleted, isStopped, reqDate, updatedDate
+poll_question   (2 columns)
+question_id, poll_id
+poll_answer   (2 columns)
+answer_id, question_id
+poll_apartment   (3 columns)
+poll_ap_id, poll_id, apartment_id
+poll_chose_users   (3 columns)
+question_id, answer_id, apartment_id
+poll_picture   (2 columns)
+picture_id, question_id
+property   (12 columns)
+id, isDeleted, branchId, apartmentId, townId, roomCount, size, height, isCompany, isCharge, propertyType, counterType
+propertyCarAccess   (7 columns)
+id, propertyId, branchId, carAccess, registeredWorkerId, createdAt, updatedAt
+propertyJoinRequest   (11 columns)
+id, userId, propertyId, status, ownerType, branchId, approvedWorkerId, tempPropertyId, requestType, createdAt, updatedAt
+propertyLog   (4 columns)
+id, replaceDate, createdAt, updatedAt
+helpcomment   (7 columns)
+id, type, contentFormat, branchHelpId, workerId, createdAt, updatedAt
+helpCommentImage   (2 columns)
+id, helpCommentId
+importantFiles   (5 columns)
+id, isDeleted, fileType, createdAt, updatedAt
+information   (11 columns)
+id, date, isDeleted, branchId, townId, propertyId, infoType, sentType, addType, workerId, userId
+infowhom   (3 columns)
+id, informationId, sentType
+inouthistory   (9 columns)
+id, carId, inDate, outDate, branchId, propertyId, cameraId, type, regDate
+internalAd   (9 columns)
+id, regDate, isDeleted, branchId, userId, expireDate, price, propertyId, updatedDate
+internalAdImage   (2 columns)
+id, internalAdId
+internalAdWhom   (3 columns)
+id, internalAdId, apartmentId
+invoicePackege   (3 columns)
+id, type, branchPaymentType
+khanPayLog   (12 columns)
+id, isSent, regDate, sentDate, amount, branchId, propertyId, invoiceId, payedBalanceId, settleId, workerId, bankCode
+liftFloor   (3 columns)
+id, barrierId, name
+like   (3 columns)
+id, contentId, contentType
+log   (5 columns)
+id, tableId, actionType, actionDate, branchId
+nearbyService   (2 columns)
+id, categoryId
+news   (5 columns)
+id, date, isDeleted, type, workerId
+newsfiles   (2 columns)
+id, newsId
+newsimages   (2 columns)
+id, newsId
+complainfiles   (3 columns)
+id, contentId, fileType
+complainimages   (3 columns)
+id, contentId, imageType
+complainresult   (11 columns)
+id, complainId, branchId, workerId, toWorkerId, date, stage, process, regDate, isDeleted, userId
+complainResultFiles   (5 columns)
+id, resultId, fileType, createdAt, updatedAt
+conciergeItem   (3 columns)
+id, name, type
+conciergeMenu   (2 columns)
+id, name
+contract   (4 columns)
+id, branchId, date1, date2
+cost   (9 columns)
+id, isDeleted, branchId, townId, regDate, workerId, serviceId, costDate, amount
+counter   (1 columns)
+jsondata
+files   (2 columns)
+id, contentId
+forum   (7 columns)
+id, rootId, branchId, workerId, workerType, date, isDeleted
+forumfiles   (2 columns)
+id, forumId
+forumimages   (2 columns)
+id, forumId
+forumlike   (3 columns)
+id, forumId, workerId
+help   (2 columns)
+id, screenName
+helpDeskStage   (8 columns)
+id, name, order, color, isSystem, isActive, createdAt, updatedAt
+helpDeskTag   (7 columns)
+id, name, color, isActive, order, createdAt, updatedAt
+helpDeskTagFaq   (6 columns)
+id, tagId, order, isActive, createdAt, updatedAt
+images   (3 columns)
+id, contentId, imageType
+branchInvoice   (8 columns)
+id, branchId, total, status, month, totalCount, createdAt, updatedAt
+branchInvoicePayment   (6 columns)
+id, branchInvoiceId, total, count, createdAt, updatedAt
+branchInvoicePaymentDetail   (8 columns)
+id, branchInvoicePaymentId, total, unitPrice, count, moduleId, createdAt, updatedAt
+burteLog   (6 columns)
+id, type, status, branchId, createdAt, updatedAt
+electricUser   (2 columns)
+id, userId
+electricPayed   (6 columns)
+id, electricUserId, amount, payedDate, createdAt, updatedAt
+errorVat   (2 columns)
+id, vatId
+invoiceBucket   (3 columns)
+id, createdAt, updatedAt
+mainconfig   (8 columns)
+id, isDeleted, branchId, serviceId, sort, isVat, propertyTypes, paymentGroupId
+mainConfigHistory   (6 columns)
+id, workerId, mainConfigId, branchId, createdAt, updatedAt
+message   (16 columns)
+id, branchId, townId, apartmentId, propertyId, regDate, sentDate, paymentDate, monthlySum, totalSum, failed, checked, approved, multi, senderType, messageType
+meter   (10 columns)
+id, branchId, apartmentId, propertyId, valveState, period, serviceId, validatedDate, expireDate, battery
+meterhistory   (7 columns)
+id, meterId, updatedDate, meterCount, difference, propertyId, serviceId
+module   (6 columns)
+id, name, paymentType, basePrice, createdAt, updatedAt
+monthlypayment   (16 columns)
+id, branchId, apartmentId, propertyId, serviceId, sort, isVat, zaalt1, zaalt2, zaaltSum, priceSum, isApprove, date, regDate, propertyConfigId, paymentGroupId
+negdiCard   (5 columns)
+id, userId, brand, bankname, status
+negdiHistory   (11 columns)
+id, status, propertyId, amount, userId, invoiceBucketId, branchTranStatus, bankCode, branchTranDate, createdAt, updatedAt
+paymentapprovejob   (15 columns)
+id, action, status, branchId, townId, apartmentId, paymentGroupId, year, month, workerId, regDate, startDate, doneDate, processTime, attempt
+paymentgroup   (7 columns)
+id, branchId, name, isDeleted, townId, vatType, vatDistrictCode
+proBill   (5 columns)
+id, propertyId, billerId, createdAt, updatedAt
+propertyconfig   (12 columns)
+id, branchId, apartmentId, propertyId, serviceId, sort, propertyTypes, isVat, unitPrice, paymentGroupId, isDeleted, mainConfigId
+propertyPrivateConfig   (10 columns)
+id, paymentgroupId, serviceId, amount, workerId, propertyId, isActive, branchId, createdAt, updatedAt
+qpayHistory   (10 columns)
+id, stage, checked, regDate, checkedDate, branchId, propertyId, invoiceBucketId, createdAt, updatedAt
+rent   (4 columns)
+id, startDate, endDate, userPropertyId
+reverseLog   (5 columns)
+id, balanceId, amount, createdAt, updatedAt
+stateBalanceDifference   (8 columns)
+id, propertyId, diffAmount, stateAmount, ourAmount, checkedDate, branchId, apartmentId
+stateSubErrors   (3 columns)
+id, propertyId, balanceId
+townCorporate   (7 columns)
+id, isDeleted, bankId, townId, lastSyncDate, startSyncDate, hasCostSync
+paymentapprove   (18 columns)
+id, branchId, apartmentId, paymentDate, regDate, workerId, stage, approvedDate, cancelDate, totalSuuts, totalGraj, totalAguulah, totalPrice, townId, paymentGroupId, success, createdAt, updatedAt
+statePayment   (8 columns)
+id, propertyId, total, year, month, paymentDate, branchId, apartmentId
+stateBankStatement   (15 columns)
+id, propertyId, amount, stateBranch, txnDate, txnType, branchId, regDate, success, townId, bankId, townCorporateId, paymentType, createdAt, updatedAt
+vat   (10 columns)
+id, propertyId, balanceId, branchId, regDate, type, isDeleted, stage, createdAt, updatedAt
+group   (8 columns)
+id, isDeleted, ableNotif, createdUserId, status, tag, createdAt, updatedAt
+groupApartment   (5 columns)
+id, groupId, apartmentId, createdAt, updatedAt
+groupBranch   (5 columns)
+id, groupId, branchId, createdAt, updatedAt
+groupTown   (5 columns)
+id, groupId, townId, createdAt, updatedAt
+groupUser   (7 columns)
+id, userId, groupId, propertyId, isAdmin, createdAt, updatedAt
+post   (7 columns)
+id, isDeleted, userId, groupId, hasNotification, createdAt, updatedAt
+postComment   (6 columns)
+id, postId, rootId, userId, createdAt, updatedAt
+postCommentLike   (5 columns)
+id, userId, postCommentId, createdAt, updatedAt
+postImage   (4 columns)
+id, postId, createdAt, updatedAt
+postLike   (5 columns)
+id, userId, postId, createdAt, updatedAt
+branchStateDifference   (9 columns)
+id, apartmentId, branchId, esukhTotal, stateTotal, propertyCount, date, createdAt, updatedAt
+graphSummary   (8 columns)
+id, count, branchId, month, year, amount, amount2, type
+massMail   (4 columns)
+id, regDate, sendType, regWorkerId
+overpaidBalance   (8 columns)
+id, branchId, apartmentId, propertyId, paymentBalance, paymentDate, createdAt, updatedAt
+process   (4 columns)
+id, step, salesProcessId, regDate
+salesProcess   (3 columns)
+id, step, branchId
+branchHelpAssignee   (7 columns)
+id, branchHelpId, workerId, role, assignedByWorkerId, createdAt, updatedAt
+branchHelpAssignmentLog   (8 columns)
+id, branchHelpId, action, fromWorkerId, toWorkerId, performedByWorkerId, createdAt, updatedAt
+branchHelpTag   (5 columns)
+id, branchHelpId, tagId, createdAt, updatedAt
+branchInfo   (10 columns)
+id, date, isDeleted, infoType, workerId, all, rate, banner, startDate, dueDate
+branchInfoFile   (2 columns)
+id, branchInfoId
+branchInfoImage   (2 columns)
+id, branchInfoId
+branchInfoWhom   (3 columns)
+id, branchInfoId, branchId
+branchPaymentDetail   (10 columns)
+id, branchId, apartmentId, total, regDate, branchbalanceId, month, count, unitPrice, townId
+capital   (20 columns)
+id, isDeleted, branchId, apartmentId, ortsNo, regWorkerId, regDate, measure, type, unitPrice, startDate, validDate, capitalName, cnt, workerId, companyId, madeIn, capacity, speed, floorCount

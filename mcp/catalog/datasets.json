@@ -1,0 +1,2014 @@
+{
+ "k_min": 5,
+ "datasets": {
+  "myproperty_building": {
+   "system": "myproperty",
+   "description": "One row per managed building within each branch (property management system).",
+   "fields": {
+    "totalBlocks": {
+     "type": "int",
+     "role": "measure",
+     "description": "Number of blocks or towers in this building"
+    },
+    "totalFloors": {
+     "type": "int",
+     "role": "measure",
+     "description": "Total number of floors in the building"
+    },
+    "totalArea": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Total area (m²) covered by this building"
+    },
+    "constructionYear": {
+     "type": "int",
+     "role": "measure",
+     "description": "Year the building was constructed or commissioned"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Building operational status: ACTIVE / INACTIVE / UNDER_MAINTENANCE"
+    }
+   }
+  },
+  "myproperty_invoice": {
+   "system": "myproperty",
+   "person_fields": [
+    "tenantId",
+    "ownerId"
+   ],
+   "description": "One row per invoice (нэхэмжлэх) to a tenant or owner under a contract; answers invoice counts, amounts, ageing and payment-status questions.",
+   "fields": {
+    "contractId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "payerType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Not who created the invoice"
+    },
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "invoiceMonth": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Billing month, YYYY-MM"
+    },
+    "issueDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Invoice issue date; truncated to the hour"
+    },
+    "dueDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Due date; truncated to the hour"
+    },
+    "expectedPayDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Payment date planned by the user; truncated to the hour"
+    },
+    "totalAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Invoice total amount"
+    },
+    "paidAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Amount paid"
+    },
+    "balance": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Outstanding balance"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Invoice status (source default 'INACTIVE')"
+    },
+    "approvedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Approval time; truncated to the hour"
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Invoice type;"
+    },
+    "tenantId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of tenant (түрээслэгч);"
+    },
+    "ownerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of owner (өмчлөгч);"
+    },
+    "approvedBy": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the person recorded in this column;"
+    }
+   }
+  },
+  "myproperty_invoicepayment": {
+   "system": "myproperty",
+   "description": "Application of a payment to an invoice (no update timestamp in source);",
+   "fields": {
+    "invoiceId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Invoice the amount is applied to"
+    },
+    "paymentId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Payment applied; nullable for applications coming from tenantBalance or deposits"
+    },
+    "appliedAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Amount applied to the invoice"
+    },
+    "lateFeeId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Late fee record"
+    },
+    "lateFeeAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Late fee amount applied"
+    }
+   }
+  },
+  "myproperty_owner": {
+   "system": "myproperty",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "Property or unit owner (өмчлөгч) registry for office management, one row per owner; names, register numbers and contacts are not copied.",
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Branch that manages this owner"
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Owner type: INDIVIDUAL or COMPANY"
+    },
+    "ownershipType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Ownership type: FULL / SHARED / LEASED."
+    },
+    "id": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "Person token (the userId other tables of this system carry) - count only"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of user in the central User Service (global user, unique by phone);"
+    }
+   }
+  },
+  "myproperty_payment": {
+   "system": "myproperty",
+   "person_fields": [
+    "tenantId",
+    "ownerId"
+   ],
+   "description": "One row per payment received from a tenant or owner; answers payment volume, amount and method questions.",
+   "fields": {
+    "paymentDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Payment date; truncated to the hour"
+    },
+    "paidAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Amount paid"
+    },
+    "totalAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Total amount"
+    },
+    "tenantId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of tenant (түрээслэгч);"
+    },
+    "ownerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of owner (өмчлөгч);"
+    },
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "contractId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "lateFeeAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Late fee amount"
+    },
+    "depositUsedAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Deposit amount used"
+    },
+    "method": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Payment instrument, e.g. BANK_TRANSFER, QPAY, CREDIT, ADJUSTMENT, DEPOSIT, DISCOUNT, CASH. It is the instrument, not the channel/app"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Payment status (source default 'CONFIRMED')"
+    },
+    "workerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of worker;"
+    }
+   }
+  },
+  "myproperty_rentalagreement": {
+   "system": "myproperty",
+   "person_fields": [
+    "ownerId",
+    "tenantId"
+   ],
+   "description": "One row per rental agreement of a room between an owner and a tenant (түрээслэгч) under a management contract; used for tenancy duration and tenant/owner transitions.",
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "managementContractId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Management contract the agreement falls under"
+    },
+    "startDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Agreement start date; truncated to the hour"
+    },
+    "endDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Agreement end date; truncated to the hour"
+    },
+    "rentAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Rent amount"
+    },
+    "depositAmount": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Deposit amount"
+    },
+    "paymentDueDay": {
+     "type": "int",
+     "role": "measure",
+     "description": "Payment due day of month"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Agreement status (source default 'ACTIVE')"
+    },
+    "terminatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Termination time; truncated to the hour"
+    },
+    "roomId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of room;"
+    },
+    "ownerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of owner (өмчлөгч);"
+    },
+    "tenantId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of tenant (түрээслэгч);"
+    },
+    "createdBy": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the person recorded in this column;"
+    }
+   }
+  },
+  "myproperty_room": {
+   "system": "myproperty",
+   "description": "One row per room/unit in a building; answers stock-of-units questions by type, usage and area. Mostly commercial: few rows are dwellings.",
+   "fields": {
+    "buildingId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Building (FK to building.id)"
+    },
+    "blockId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Block (FK to block.id)"
+    },
+    "floorId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Floor (FK to floor.id)"
+    },
+    "area": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Room area"
+    },
+    "height": {
+     "type": "decimal(12,2)",
+     "role": "dimension",
+     "description": "Room height"
+    },
+    "volume": {
+     "type": "decimal(14,2)",
+     "role": "dimension",
+     "description": "Room volume"
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Room type, self-describing codes: PARK = garage (граж), STORAGE = warehouse (агуулах), APARTMENT = dwelling (сууц), OFFICE/SHOP/MARKET/CLINIC/RESTAURANT/HOTEL/…"
+    },
+    "usageStatus": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Usage status (source default 'VACANT')"
+    },
+    "contractId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Contract (FK to contract.id)"
+    },
+    "hasMeter": {
+     "type": "boolean",
+     "role": "dimension",
+     "description": "Whether the room has a meter"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Room status"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Room record creation time; truncated to the hour"
+    },
+    "id": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "Person token (the userId other tables of this system carry) - count only"
+    },
+    "tenantId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of tenant (түрээслэгч);"
+    },
+    "ownerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of owner (өмчлөгч);"
+    }
+   }
+  },
+  "myproperty_tenant": {
+   "system": "myproperty",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "Tenant (түрээслэгч) registry linking to the central user service by userId, one row per tenant; answers tenant counts and growth. Names, register numbers and contacts are not copied.",
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Branch that manages this tenant"
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Tenant type: INDIVIDUAL or COMPANY"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "ACTIVE / INACTIVE / BLACKLISTED"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Record creation time; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Record last update time; truncated to the hour"
+    },
+    "id": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "Person token (the userId other tables of this system carry) - count only"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of user in the central User Service (global user, unique by phone);"
+    }
+   }
+  },
+  "parkly_park": {
+   "system": "parkly",
+   "description": "One row per parkly park (parking facility) of a branch; answers park type, capacity, paid/unpaid and parent/child structure. Park name, register and bank account fields are not copied.",
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Owning branch (FK to branch)."
+    },
+    "parkType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Park type, enum: Хотхон (residential complex) | Оффис (office) | Төлбөртэй зогсоол (paid parking) | Хүргэлт (delivery)."
+    },
+    "isPaid": {
+     "type": "boolean",
+     "role": "count_distinct",
+     "description": "Paid-park flag (default true)."
+    },
+    "fee": {
+     "type": "int",
+     "role": "measure"
+    },
+    "parkingSpaces": {
+     "type": "int",
+     "role": "measure",
+     "description": "Number of parking spaces;"
+    },
+    "numberRecog": {
+     "type": "boolean",
+     "role": "dimension"
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "bank": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "park_uuid": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID of the park in the source system (NOT NULL); a source identifier, not a platform token."
+    },
+    "formula": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "isDeleted": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Soft-delete flag (integer, default 0)."
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Created timestamp (truncated to the hour)."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Last-updated timestamp (truncated to the hour)."
+    },
+    "penaliseFee": {
+     "type": "int",
+     "role": "measure"
+    },
+    "vat": {
+     "type": "boolean",
+     "role": "dimension"
+    },
+    "parentOrChild": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "parentParkId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Parent park (FK to park.id)."
+    },
+    "sortOrder": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "workerId": {
+     "type": "string",
+     "role": "count_distinct"
+    }
+   }
+  },
+  "parkly_parkaccessconfig": {
+   "system": "parkly",
+   "description": "One row per park's access configuration: configured counts and limits of permanent and temporary cars. it holds configured counts, not actual entries.",
+   "fields": {
+    "parkId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Park the configuration belongs to;"
+    },
+    "permaCar": {
+     "type": "int",
+     "role": "measure",
+     "description": "Configured number of cars with permanent access. A count, not a car reference."
+    },
+    "tempCar": {
+     "type": "int",
+     "role": "measure",
+     "description": "Configured number of temporary-access cars. A count, not a car reference."
+    },
+    "permaLimit": {
+     "type": "int",
+     "role": "measure",
+     "description": "Limit for permanent-access cars."
+    },
+    "tempLimit": {
+     "type": "int",
+     "role": "measure",
+     "description": "Limit for temporary-access cars."
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Created timestamp (truncated to the hour)."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Last-updated timestamp (truncated to the hour)."
+    },
+    "permaAANCar": {
+     "type": "int",
+     "role": "measure"
+    },
+    "permaAANLimit": {
+     "type": "int",
+     "role": "measure"
+    },
+    "tempAANCar": {
+     "type": "int",
+     "role": "measure"
+    },
+    "tempAANLimit": {
+     "type": "int",
+     "role": "measure"
+    }
+   }
+  },
+  "sma_aiinfos": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per AI assistant (AI туслах) profile of a user (source AiInfos); counts users with an AI assistant profile.",
+   "fields": {
+    "robotLogo": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Logo of the AI assistant ('robot') profile"
+    },
+    "device": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the device"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row creation time in the source; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user"
+    }
+   }
+  },
+  "sma_auctionsubscriptionbills": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per auction subscription bill for a sale/rent listing (source AuctionSubscriptionBills, FK to PropertySaleRents); paid bills are the auction part of rental brokerage commission income. Which status values mean '…",
+   "fields": {
+    "propertySaleRentId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Listing the bill is for (FK to PropertySaleRents.id)"
+    },
+    "price": {
+     "type": "decimal(20,2)",
+     "role": "measure",
+     "description": "Bill amount"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Bill status"
+    },
+    "days": {
+     "type": "int",
+     "role": "measure",
+     "description": "Number of days"
+    },
+    "methodType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Payment method type"
+    },
+    "vatType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "VAT type"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Bill creation time; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "vatData": {
+     "type": "string",
+     "role": "dimension",
+     "description": "VAT data (JSON in the source)"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user"
+    }
+   }
+  },
+  "sma_cars": {
+   "system": "sma",
+   "description": "One row per car registered in the sma app (source Cars), loaded without plateNumber;",
+   "fields": {
+    "buildYear": {
+     "type": "int",
+     "role": "measure",
+     "description": "Build year of the car"
+    },
+    "importDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Import date of the car; truncated to the hour"
+    },
+    "fuelType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Fuel type"
+    },
+    "wheelPosition": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Steering-wheel position"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row creation time in the source; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "id": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "Person token (the userId other tables of this system carry) - count only"
+    }
+   }
+  },
+  "sma_directoffers": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per direct offer (source DirectOffers, FK to Users); the paid direct offers are the direct-offer part of rental brokerage commission income, filtered on paidAt.",
+   "fields": {
+    "towns": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Towns of the offer (JSON in the source)"
+    },
+    "propertyType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Property type: enum apartment / garage"
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Offer type: enum SALE / RENT"
+    },
+    "price": {
+     "type": "decimal(15,2)",
+     "role": "measure",
+     "description": "Price"
+    },
+    "billStatus": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Bill status"
+    },
+    "paidAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Payment time; truncated to the hour"
+    },
+    "journalNo": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Journal number"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row creation time in the source; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "vatInfo": {
+     "type": "string",
+     "role": "dimension",
+     "description": "VAT info (JSON in the source)"
+    },
+    "stage": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Stage"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user"
+    }
+   }
+  },
+  "sma_iotsubscriptions": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per IoT (relay, релей) subscription of a user (source IotSubscriptions); answers activated relay subscriptions and their fee income by creation date. There is no payment-status column.",
+   "fields": {
+    "priceInfoId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Price/product id - points outside this database"
+    },
+    "price": {
+     "type": "decimal(20,2)",
+     "role": "measure",
+     "description": "Subscription price"
+    },
+    "startDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Subscription start; truncated to the hour"
+    },
+    "endDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Subscription end; truncated to the hour"
+    },
+    "quota": {
+     "type": "int",
+     "role": "measure",
+     "description": "Quota"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Subscription creation time; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "priceInfoMethodId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Price-info method id (outside this database)"
+    },
+    "vatInfo": {
+     "type": "string",
+     "role": "dimension",
+     "description": "VAT info (JSON in the source)"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user"
+    }
+   }
+  },
+  "sma_propertysalerents": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per property sale or rent listing (source PropertySaleRents, FK to Users); answers rental/sale listings by town, type and stage - grouped by town, there is no 'complex grade' field.",
+   "fields": {
+    "type": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Listing type: enum SALE / RENT"
+    },
+    "propertyId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Id of the listed property (passthrough)"
+    },
+    "propertyType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Property type of the listing (free varchar in the source, not an enum)"
+    },
+    "price": {
+     "type": "decimal(15,0)",
+     "role": "measure",
+     "description": "Listing price"
+    },
+    "roomCount": {
+     "type": "int",
+     "role": "measure",
+     "description": "Room count"
+    },
+    "townId": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Town id"
+    },
+    "avgPayment": {
+     "type": "decimal(10,2)",
+     "role": "measure",
+     "description": "Average payment"
+    },
+    "size": {
+     "type": "decimal(8,2)",
+     "role": "dimension",
+     "description": "Size"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Time the listing was created; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "stage": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Listing stage (indexed with expiresAt as 'active' in the source)"
+    },
+    "coordinate": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Coordinate (JSON in the source; passthrough)"
+    },
+    "expiresAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Listing expiry time; truncated to the hour"
+    },
+    "startPrice": {
+     "type": "decimal(15,0)",
+     "role": "measure",
+     "description": "Start price"
+    },
+    "rentCondition": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Rent condition"
+    },
+    "auction": {
+     "type": "tinyint",
+     "role": "dimension",
+     "description": "Auction flag (tinyint)"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user who posted the listing"
+    }
+   }
+  },
+  "sma_smaerrors": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "answers app error counts and affected users and error-free user share. The error text itself is dropped.",
+   "fields": {
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Time the error was recorded; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user who hit the error"
+    }
+   }
+  },
+  "sma_useractionlogs": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per user action logged in the app (source UserActionLogs); the activity source - 'active user' = has an action log in the period.",
+   "fields": {
+    "action": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Action recorded in the log entry"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Time the action was logged; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "sessionId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "Session identifier of the action (passthrough)"
+    },
+    "screen": {
+     "type": "string",
+     "role": "dimension",
+     "description": "App screen the action was logged on"
+    },
+    "metaData": {
+     "type": "string",
+     "role": "dimension",
+     "description": "JSON metadata of the action (passthrough)"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user"
+    }
+   }
+  },
+  "sma_usercars": {
+   "system": "sma",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "Link table: one row per user-car pair (source UserCars, composite key userId+carId);",
+   "fields": {
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Time the user-car link was created; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the sma user"
+    },
+    "carId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the car"
+    }
+   }
+  },
+  "sma_users": {
+   "system": "sma",
+   "description": "One row per registered sma app user (source table Users); answers total users, new users per period and is the denominator for active-user share. Has no status/active column and no DAN-verification column, so 'active' a…",
+   "fields": {
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Registration date of the user; truncated to the hour"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time in the source; truncated to the hour"
+    },
+    "id": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "Person token (the userId other tables of this system carry) - count only"
+    },
+    "danVerifiedAt": {
+     "type": "timestamp",
+     "role": "date"
+    }
+   }
+  },
+  "smartpay_card": {
+   "system": "smartpay",
+   "person_fields": [
+    "userId"
+   ],
+   "fields": {
+    "brand": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "color": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "approved": {
+     "type": "boolean",
+     "role": "dimension",
+     "description": "Card approved flag;"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row creation time (Sequelize timestamps). Truncated to the hour."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct"
+    }
+   }
+  },
+  "smartpay_invoice": {
+   "system": "smartpay",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per SmartPay invoice (Invoices & payment domain): who paid (user token), which merchant, amounts, fee and payment type — answers users / invoices / fee income questions.",
+   "fields": {
+    "amount": {
+     "type": "decimal(20,2)",
+     "role": "measure"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "productPaymentType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Product payment type category. which value is which is not yet confirmed by smartpay."
+    },
+    "paymentMethodId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Payment method of the invoice."
+    },
+    "feeAmount": {
+     "type": "decimal(20,2)",
+     "role": "measure",
+     "description": "Fee on the invoice;"
+    },
+    "totalAmount": {
+     "type": "decimal(25,2)",
+     "role": "measure",
+     "description": "Invoice total amount;"
+    },
+    "invoiceItemCount": {
+     "type": "int",
+     "role": "measure"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row creation time (Sequelize timestamps). Truncated to the hour."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct"
+    },
+    "merchantId": {
+     "type": "string",
+     "role": "count_distinct"
+    }
+   }
+  },
+  "smartpay_transaction": {
+   "system": "smartpay",
+   "description": "One row per payment transaction (Transactions & settlement domain) with its amount and the fee split (merchant / SmartPay / Xpay / processing) — answers fee-income questions. Account numbers are excluded.",
+   "fields": {
+    "invoiceItemId": {
+     "type": "int",
+     "role": "count_distinct",
+     "description": "Invoice item id (no FK declared on this column; the declared link is invoiceItem.transactionId -> transaction.id)."
+    },
+    "bankCode": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Bank code."
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "settledAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Settlement time. Truncated to the hour."
+    },
+    "journalNo": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Bank transaction journal number."
+    },
+    "settleType": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "amount": {
+     "type": "decimal(20,2)",
+     "role": "measure",
+     "description": "Transaction amount;"
+    },
+    "merchantFee": {
+     "type": "decimal(20,2)",
+     "role": "measure"
+    },
+    "merchantFeePercent": {
+     "type": "decimal(5,2)",
+     "role": "measure"
+    },
+    "xpayFee": {
+     "type": "decimal(20,2)",
+     "role": "measure",
+     "description": "Xpay fee on the transaction;"
+    },
+    "xpayFeePercent": {
+     "type": "decimal(5,2)",
+     "role": "measure"
+    },
+    "spayFee": {
+     "type": "decimal(20,2)",
+     "role": "measure",
+     "description": "SmartPay fee on the transaction;"
+    },
+    "processingFee": {
+     "type": "decimal(20,2)",
+     "role": "measure"
+    },
+    "processingFeePercent": {
+     "type": "decimal(5,2)",
+     "role": "measure"
+    },
+    "afterFeeAmount": {
+     "type": "decimal(20,2)",
+     "role": "measure"
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Transaction type. NULL on almost all rows; which value marks a 'bundled' payment is unconfirmed."
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row creation time (Sequelize timestamps). Truncated to the hour."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+    },
+    "merchantSettleId": {
+     "type": "string",
+     "role": "count_distinct"
+    }
+   }
+  },
+  "esukh_balance": {
+   "system": "esukh",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "Large billing balance table. It has no update timestamp.",
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "apartmentId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "propertyId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "prevBalance": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Balance before this row - not additive"
+    },
+    "cost": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Invoiced amount (нэхэмжлэл)"
+    },
+    "monthBalance": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Balance for the month - not additive"
+    },
+    "pay": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Paid amount (төлөлт)"
+    },
+    "paymentBalance": {
+     "type": "decimal(12,2)",
+     "role": "measure",
+     "description": "Balance after this row - take the LATEST row per property, never SUM across rows"
+    },
+    "regDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "paydBalanceId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "paymentType": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "bankId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "townId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "paymentGroupId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "transactionDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "invoiceMonth": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Billing month, YYYYMM (e.g. 202610)"
+    },
+    "workerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "joins only to other 'workerId' tokens."
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "joins only to other 'userId' tokens."
+    }
+   }
+  },
+  "esukh_monthlypayment": {
+   "system": "esukh",
+   "person_fields": [
+    "propertyId"
+   ],
+   "description": "Large monthly billing table.",
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "apartmentId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "propertyId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "serviceId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "sort": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "isVat": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "zaalt1": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "zaalt2": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "zaaltSum": {
+     "type": "int",
+     "role": "measure"
+    },
+    "priceSum": {
+     "type": "decimal(10,2)",
+     "role": "measure",
+     "description": "Calculated service charge (configuration), NOT a payment - never add to balance"
+    },
+    "isApprove": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Approval flag; changes after the row is inserted."
+    },
+    "date": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "regDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Row creation timestamp; it is not a change watermark. Truncated to the hour."
+    },
+    "propertyConfigId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "paymentGroupId": {
+     "type": "int",
+     "role": "dimension"
+    }
+   }
+  },
+  "esukh_branch": {
+   "system": "esukh",
+   "description": "One row per СӨХ (apartment owners' association) - the organisation register (table comment 'СӨХ -ны сан'); use it for organisation-level attributes such as location (province/district), service type and contract dates. …",
+   "fields": {
+    "isActive": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "province": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Province (аймаг) id in reference; reference.root of the district should equal this, but 8 of 432 rows have a district outside the province, mostly Чингэлтэй дү…"
+    },
+    "district": {
+     "type": "int",
+     "role": "dimension",
+     "description": "District (дүүрэг) id in reference; its reference.root is its parent province. See the province/district mismatch bug (8 of 432 rows)."
+    },
+    "contractDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "endContractDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "expirationDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "chargeCount": {
+     "type": "int",
+     "role": "measure"
+    },
+    "bankId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "branchPaymentType": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "showPaymentGraph": {
+     "type": "int",
+     "role": "measure"
+    },
+    "isAppActive": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "color1": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "color2": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "color3": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "hasDiscount": {
+     "type": "int",
+     "role": "measure"
+    },
+    "customPrice": {
+     "type": "decimal(10,2)",
+     "role": "measure"
+    },
+    "vatType": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "vatDistrictCode": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "serviceType": {
+     "type": "int",
+     "role": "dimension",
+     "description": "Organisation service type;"
+    },
+    "subType": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "payOffPercent": {
+     "type": "decimal(10,2)",
+     "role": "measure"
+    },
+    "payOffStartDay": {
+     "type": "int",
+     "role": "measure"
+    },
+    "canSkipPay": {
+     "type": "tinyint",
+     "role": "measure"
+    },
+    "defaultPrice": {
+     "type": "decimal(10,2)",
+     "role": "measure"
+    },
+    "approvationDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "akrel": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "khanBeginDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "rate": {
+     "type": "int",
+     "role": "measure"
+    },
+    "carLimit": {
+     "type": "int",
+     "role": "measure"
+    },
+    "subsOnlyTransaction": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "hasBilling": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "useBasePrice": {
+     "type": "int",
+     "role": "measure"
+    },
+    "approveAble": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "workerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "joins only to other 'workerId' tokens."
+    },
+    "appCarTypes": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Business category, not a person."
+    }
+   }
+  },
+  "esukh_property": {
+   "system": "esukh",
+   "description": "Answers how many properties exist per branch/apartment and of which propertyType.",
+   "fields": {
+    "isDeleted": {
+     "type": "tinyint",
+     "role": "dimension",
+     "description": "Soft-delete flag; defaults to 1 in esukh, so do NOT filter on it"
+    },
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "apartmentId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "roomCount": {
+     "type": "tinyint",
+     "role": "measure"
+    },
+    "size": {
+     "type": "decimal(10,4)",
+     "role": "dimension"
+    },
+    "isCompany": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "isCharge": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "propertyType": {
+     "type": "tinyint",
+     "role": "dimension",
+     "description": "Property type: 1 = сууц (dwelling), 2 = гараж (garage), 3 = агуулах (storage) - confirmed"
+    },
+    "counterType": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "height": {
+     "type": "decimal(10,2)",
+     "role": "dimension"
+    },
+    "townId": {
+     "type": "int",
+     "role": "dimension"
+    }
+   }
+  },
+  "esukh_userproperty": {
+   "system": "esukh",
+   "person_fields": [
+    "userId"
+   ],
+   "fields": {
+    "propertyId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "ownerType": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "active": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "confirmed": {
+     "type": "tinyint",
+     "role": "dimension"
+    },
+    "getVatType": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "isCompany": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "joins only to other 'userId' tokens."
+    }
+   }
+  },
+  "esukh_group": {
+   "system": "esukh",
+   "description": "Groups; target of groupapartment.groupId and grouptown.groupId (declared FKs).",
+   "fields": {
+    "isDeleted": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "ableNotif": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "tag": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "createdUserId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the user who created the group."
+    }
+   }
+  },
+  "esukh_userbarrier": {
+   "system": "esukh",
+   "person_fields": [
+    "userId"
+   ],
+   "fields": {
+    "barrierId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "propertyId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "startDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "endDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "regDate": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "townId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "apartmentId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "disabled": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "joins only to other 'userId' tokens."
+    }
+   }
+  },
+  "parkly_carconfig": {
+   "system": "parkly",
+   "person_fields": [
+    "carId"
+   ],
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "parkId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "groupId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "beginDate": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "endDate": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "date": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "status": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "active": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "isDeleted": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "carId": {
+     "type": "string",
+     "role": "count_distinct"
+    },
+    "workerId": {
+     "type": "string",
+     "role": "count_distinct"
+    }
+   }
+  },
+  "parkly_inrecord": {
+   "system": "parkly",
+   "person_fields": [
+    "carId"
+   ],
+   "fields": {
+    "branchId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "cameraId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "parkId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "inDate": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "carConfigId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "groupId": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "carId": {
+     "type": "string",
+     "role": "count_distinct"
+    }
+   }
+  },
+  "parkly_payments": {
+   "system": "parkly",
+   "fields": {
+    "inRecord_id": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "pay_amount": {
+     "type": "double",
+     "role": "measure"
+    },
+    "paid_amount": {
+     "type": "double",
+     "role": "measure"
+    },
+    "paid_date": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "payment_options_id": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "ebarimt": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "success": {
+     "type": "boolean",
+     "role": "dimension"
+    },
+    "payment_type": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "branch_id": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "park_id": {
+     "type": "int",
+     "role": "dimension"
+    },
+    "remaining_amount": {
+     "type": "double",
+     "role": "measure"
+    },
+    "worker_id": {
+     "type": "string",
+     "role": "count_distinct"
+    }
+   }
+  },
+  "parkly_group": {
+   "system": "parkly",
+   "description": "Car groups referenced by carConfig.groupId and groupDiscount.groupId (FKs). The name is not copied.",
+   "fields": {
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Created timestamp (truncated to the hour)."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Last-updated timestamp (truncated to the hour)."
+    },
+    "type": {
+     "type": "string",
+     "role": "dimension"
+    },
+    "icon": {
+     "type": "string",
+     "role": "dimension"
+    }
+   }
+  },
+  "esukh_userfeedback": {
+   "system": "esukh",
+   "person_fields": [
+    "userId"
+   ],
+   "description": "One row per feedback item a resident submitted (metadata only: tag, status, open/close times; the text is not loaded)",
+   "fields": {
+    "tag": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Feedback category tag"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "status": {
+     "type": "string",
+     "role": "dimension",
+     "description": "OPEN / CLOSED"
+    },
+    "closedAt": {
+     "type": "timestamp",
+     "role": "date"
+    },
+    "closedByType": {
+     "type": "string",
+     "role": "dimension",
+     "description": "Who closed it: ADMIN or USER"
+    },
+    "branchHelpId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "userId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the user (count only)"
+    }
+   }
+  }
+ }
+}

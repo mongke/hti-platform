@@ -1,0 +1,1371 @@
+{
+ "systems": {
+  "myproperty": {
+   "description": "MyProperty is one of Hubilai Tech's (HTI) apps, a property-management system (own Postgres 16 database) for managed buildings, rooms, owners (өмчлөгч), tenants (түрээслэгч), contracts, invoices (нэхэмжлэх) and payments; its rooms are mostly commercial, with few dwellings (сууц). People appear only as UUID tokens, and a token joins only to columns in the same token namespace (by default, the same column name)."
+  }
+ },
+ "tables": {
+  "bronze_ref.myproperty_action": {
+   "description": "Action reference table (domain D6 Workers, tasks & planning); one row per action, referenced by workerAction.actionId. (bronze_ref copy of a table that also exists as silver.myproperty_action.)",
+   "key": "id",
+   "columns": {
+    "id": "Action id; referenced by workerAction.actionId (DDL FK)"
+   }
+  },
+  "bronze_ref.myproperty_archivefile": {
+   "description": "Archived file metadata (domain D9 Integration & misc); file names, paths and URLs are masked, only type/size metadata is kept. (bronze_ref copy of a table that also exists as silver.myproperty_archivefile.)",
+   "key": "id",
+   "columns": {
+    "mimeType": "File MIME type",
+    "fileSize": "File size"
+   }
+  },
+  "bronze_ref.myproperty_bankstatement": {
+   "description": "One row per bank statement line (transaction) of a branch; answers questions about incoming/outgoing bank transactions and how they were applied to contracts and payments (domain D3 Invoicing & payments). (bronze_ref copy of a table that also exists as silver.myproperty_bankstatement.)",
+   "key": "id",
+   "time_column": "transactionDate",
+   "joins": [
+    "id -> silver.myproperty_bankstatementpayment.bankStatementId"
+   ],
+   "columns": {
+    "bankCode": "Bank code",
+    "transactionDate": "Bank transaction time; truncated to the hour in silver.myproperty_bankstatement (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "amount": "Transaction amount",
+    "direction": "Transaction direction (source default 'CREDIT')",
+    "status": "Processing status of the statement line (source default 'NEW')",
+    "appliedAt": "Timestamp; truncated to the hour in silver.myproperty_bankstatement (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value"
+   }
+  },
+  "bronze_ref.myproperty_bankstatementpayment": {
+   "description": "Allocation of a bank statement line to a payment and contract (DDL FKs to bankStatement, payment and contract). (bronze_ref copy of a table that also exists as silver.myproperty_bankstatementpayment.)",
+   "key": "id",
+   "joins": [
+    "bankStatementId -> silver.myproperty_bankstatement.id",
+    "paymentId -> silver.myproperty_payment.id",
+    "contractId -> silver.myproperty_contract.id"
+   ],
+   "columns": {
+    "bankStatementId": "Bank statement line (FK to bankStatement.id)",
+    "paymentId": "Payment (FK to payment.id)",
+    "contractId": "Contract (FK to contract.id)",
+    "isDepositPayment": "Whether the allocation is a deposit payment",
+    "amount": "Allocated amount"
+   }
+  },
+  "bronze_ref.myproperty_block": {
+   "description": "One row per block (tower/wing) of a building (domain D1 Buildings, blocks & rooms). (bronze_ref copy of a table that also exists as silver.myproperty_block.)",
+   "key": "id",
+   "joins": [
+    "buildingId -> silver.myproperty_building.id"
+   ],
+   "columns": {
+    "buildingId": "Building the block belongs to (FK to building.id)",
+    "totalFloors": "Number of floors in this block",
+    "totalArea": "Total area (m²)"
+   }
+  },
+  "bronze_ref.myproperty_branch": {
+   "description": "One row per branch, the managing organisation in myproperty (domain D8 Branch & onboarding); holds branch settings such as the system fee. (bronze_ref copy of a table that also exists as silver.myproperty_branch.)",
+   "key": "id",
+   "columns": {
+    "startDate": "Branch start date; truncated to the hour in silver.myproperty_branch (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "subscriptionPlan": "Branch subscription plan",
+    "feePercent": "Branch system fee percentage, e.g. 2 means 2%",
+    "feeServiceIds": "Selected service IDs used as the fee base; empty means invoice totalAmount"
+   }
+  },
+  "bronze_ref.myproperty_branchbuilding": {
+   "description": "Link between a branch and a building, with the branch's role in that building (DDL FKs to branch and building). (bronze_ref copy of a table that also exists as silver.myproperty_branchbuilding.)",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.myproperty_branch.id",
+    "buildingId -> silver.myproperty_building.id"
+   ],
+   "columns": {
+    "branchId": "Branch (FK to branch.id)",
+    "buildingId": "Building (FK to building.id)",
+    "role": "Branch role in the building, e.g. MAIN_MANAGER, MAINTENANCE_PARTNER, CLEANING_CONTRACTOR",
+    "isActive": "Whether the link is active"
+   }
+  },
+  "bronze_ref.myproperty_branchbuildingcorporate": {
+   "description": "Per branch and building corporate bank connection settings (the credential itself is never copied); domain D8. (bronze_ref copy of a table that also exists as silver.myproperty_branchbuildingcorporate.)",
+   "key": "id",
+   "columns": {
+    "bankCode": "Bank code",
+    "startSyncDate": "Statement sync start date; truncated to the hour in silver.myproperty_branchbuildingcorporate (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "fetchDebitStatements": "Whether debit statements are fetched"
+   }
+  },
+  "bronze_ref.myproperty_branchbuildingpaymentinfo": {
+   "description": "Per branch and building payment/invoicing settings (bank, rounding, system fee formula); bank account numbers are not copied. (bronze_ref copy of a table that also exists as silver.myproperty_branchbuildingpaymentinfo.)",
+   "key": "id",
+   "columns": {
+    "bankCode": "Bank code",
+    "depositBankCode": "Bank code for deposits",
+    "roundDecimal": "Decimal places to round invoice totals for this branch",
+    "feeFormula": "System fee rate as string (e.g. 0.02 for 2%)",
+    "startInvoiceDate": "Invoicing start date; truncated to the hour in silver.myproperty_branchbuildingpaymentinfo (time_band rule). This bronze_ref copy is typed date and may hold the untransformed value"
+   }
+  },
+  "bronze_ref.myproperty_branchbuildingvatinfo": {
+   "description": "Per branch and building VAT (НӨАТ) settings; the register number is not copied. (bronze_ref copy of a table that also exists as silver.myproperty_branchbuildingvatinfo.)",
+   "key": "id",
+   "columns": {
+    "districtCode": "District code",
+    "approved": "Whether approved",
+    "taxType": "Tax type",
+    "serviceCode": "Service code"
+   }
+  },
+  "bronze_ref.myproperty_branchinvoice": {
+   "description": "One row per branch invoice for the system fee of a period month (periodMonth = fee calculation period); answers branch fee billing and payment questions. (bronze_ref copy of a table that also exists as silver.myproperty_branchinvoice.)",
+   "key": "id",
+   "time_column": "issueDate",
+   "joins": [
+    "walletId -> silver.myproperty_branchwallet.id"
+   ],
+   "columns": {
+    "walletId": "Branch wallet",
+    "periodMonth": "YYYY-MM of the fee calculation period",
+    "issueDate": "Issue date; truncated to the hour in silver.myproperty_branchinvoice (time_band rule). This bronze_ref copy is typed date and may hold the untransformed value",
+    "dueDate": "Due date; truncated to the hour in silver.myproperty_branchinvoice (time_band rule). This bronze_ref copy is typed date and may hold the untransformed value",
+    "baseAmount": "Fee base amount",
+    "feeRate": "Fee rate",
+    "totalAmount": "Total amount",
+    "paidAmount": "Amount paid",
+    "balance": "Outstanding balance",
+    "status": "Invoice status",
+    "autoPaid": "Whether paid automatically",
+    "autoPaidAt": "When auto-paid; truncated to the hour in silver.myproperty_branchinvoice (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "lastPaidAt": "Last payment time; truncated to the hour in silver.myproperty_branchinvoice (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value"
+   }
+  },
+  "bronze_ref.myproperty_branchregistration": {
+   "description": "Onboarding/registration progress of a branch (domain D8 Branch & onboarding). (bronze_ref copy of a table that also exists as silver.myproperty_branchregistration.)",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.myproperty_branch.id"
+   ],
+   "columns": {
+    "branchId": "Branch (FK to branch.id)",
+    "status": "Registration status",
+    "progressPercent": "Registration progress percentage",
+    "currentStep": "Current registration step",
+    "activatedAt": "Activation time; truncated to the hour in silver.myproperty_branchregistration (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "activatedBy": "Worker who activated the branch (FK to worker.id; passed through, not tokenised)"
+   }
+  },
+  "bronze_ref.myproperty_branchsupportvar": {
+   "description": "Branch configuration variable table (waived 2026-10-02 as a filter false positive: configuration, not support tickets); variable names are not copied. (bronze_ref copy of a table that also exists as silver.myproperty_branchsupportvar.)",
+   "key": "id",
+   "columns": {
+    "formula": "Configured formula"
+   }
+  },
+  "bronze_ref.myproperty_branchwallet": {
+   "description": "Wallet of a branch; its movements (TOP_UP, FEE_DEBIT, ADJUSTMENT, REFUND) are in branchWalletTransaction. (bronze_ref copy of a table that also exists as silver.myproperty_branchwallet.)",
+   "key": "id",
+   "columns": {
+    "balance": "Wallet balance",
+    "currency": "Currency",
+    "status": "Wallet status",
+    "lastAutoChargeAt": "Last automatic charge time; truncated to the hour in silver.myproperty_branchwallet (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value"
+   }
+  },
+  "bronze_ref.myproperty_branchwallettransaction": {
+   "description": "One row per branch wallet transaction (top-up, fee debit, adjustment, refund). (bronze_ref copy of a table that also exists as silver.myproperty_branchwallettransaction.)",
+   "key": "id",
+   "joins": [
+    "walletId -> silver.myproperty_branchwallet.id"
+   ],
+   "columns": {
+    "walletId": "Branch wallet",
+    "type": "Transaction type: TOP_UP, FEE_DEBIT, ADJUSTMENT, REFUND",
+    "source": "Transaction source: SYSTEM, QPAY, BANK_STATEMENT, ADMIN",
+    "referenceType": "Type of the referenced record; determines what referenceId points to (polymorphic)",
+    "referenceId": "Id of the referenced record; target table is given by referenceType (polymorphic)",
+    "amount": "Transaction amount",
+    "balanceAfter": "Wallet balance after the transaction",
+    "vatId": "VAT (НӨАТ) receipt record"
+   }
+  },
+  "bronze_ref.myproperty_building": {
+   "description": "One row per managed building within each branch (property management system). (bronze_ref copy of a table that also exists as silver.myproperty_building.)",
+   "key": "id",
+   "columns": {
+    "id": "Primary key of the building",
+    "totalBlocks": "Number of blocks or towers in this building",
+    "totalFloors": "Total number of floors in the building",
+    "totalArea": "Total area (m²) covered by this building",
+    "constructionYear": "Year the building was constructed or commissioned",
+    "status": "Building operational status: ACTIVE / INACTIVE / UNDER_MAINTENANCE"
+   }
+  },
+  "bronze_ref.myproperty_capitalcategory": {
+   "description": "Capital asset category (domain D5 Capital assets); only the id is copied (name/description masked). (bronze_ref copy of a table that also exists as silver.myproperty_capitalcategory.)",
+   "key": "id"
+  },
+  "bronze_ref.myproperty_capitalmaintenance": {
+   "description": "One row per maintenance event on a capital asset (domain D5). (bronze_ref copy of a table that also exists as silver.myproperty_capitalmaintenance.)",
+   "key": "id",
+   "time_column": "maintenanceDate",
+   "columns": {
+    "capitalId": "Capital asset item",
+    "maintenanceDate": "Maintenance date; truncated to the hour in silver.myproperty_capitalmaintenance (time_band rule). This bronze_ref copy is typed date and may hold the untransformed value",
+    "maintenanceType": "Maintenance type",
+    "cost": "Maintenance cost"
+   }
+  },
+  "bronze_ref.myproperty_contractbalance": {
+   "description": "Current balance per contract (DDL FK contract_id -> contract.id). (bronze_ref copy of a table that also exists as silver.myproperty_contractbalance.)",
+   "key": "id",
+   "joins": [
+    "contract_id -> silver.myproperty_contract.id"
+   ],
+   "columns": {
+    "contract_id": "Contract (FK to contract.id)",
+    "balance": "Current balance",
+    "prevBalance": "Balance before the last update"
+   }
+  },
+  "bronze_ref.myproperty_contractbalancehistory": {
+   "description": "Change history of a contract balance, one row per balance movement (no update timestamp in source). (bronze_ref copy of a table that also exists as silver.myproperty_contractbalancehistory.)",
+   "key": "id",
+   "joins": [
+    "contract_id -> silver.myproperty_contract.id",
+    "payment_id -> silver.myproperty_payment.id"
+   ],
+   "columns": {
+    "contract_id": "Contract (FK to contract.id)",
+    "payment_id": "Payment that caused the movement (FK to payment.id)",
+    "delta": "Balance change",
+    "prevBalance": "Balance before",
+    "balance": "Balance after"
+   }
+  },
+  "bronze_ref.myproperty_contracttemplate": {
+   "description": "Contract template with default terms per branch. (bronze_ref copy of a table that also exists as silver.myproperty_contracttemplate.)",
+   "key": "id",
+   "columns": {
+    "category": "Template category: RENT, PARK, STORAGE, OFFICE, etc.",
+    "paymentDueDay": "Payment due day of month",
+    "lateFeeRate": "Late fee rate",
+    "durationMonths": "Duration in months",
+    "depositAmount": "Deposit amount",
+    "rentPrice": "Rent price",
+    "isActive": "Whether active"
+   }
+  },
+  "bronze_ref.myproperty_floor": {
+   "description": "One row per floor within blocks and buildings (blueprint/floorplan data itself is not copied). (bronze_ref copy of a table that also exists as silver.myproperty_floor.)",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "buildingId -> silver.myproperty_building.id",
+    "blockId -> silver.myproperty_block.id"
+   ],
+   "columns": {
+    "id": "Primary key of the floor",
+    "buildingId": "Parent building",
+    "blockId": "Block or tower this floor belongs to",
+    "level": "Numeric floor level (e.g. 12 or -1)",
+    "area": "Total area (m²) of this floor",
+    "totalRooms": "Number of rooms defined on this floor",
+    "status": "Floor status: ACTIVE / INACTIVE / UNDER_CONSTRUCTION",
+    "createdAt": "When this record was created; truncated to the hour in silver.myproperty_floor (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "updatedAt": "Last record update; truncated to the hour in silver.myproperty_floor (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value"
+   }
+  },
+  "bronze_ref.myproperty_invoicebucket": {
+   "description": "A bucket grouping several invoices (invoiceIds array); referenced by qpayHistory, the QPay invoice records. (bronze_ref copy of a table that also exists as silver.myproperty_invoicebucket.)",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "invoiceIds": "Ids of the invoices in the bucket",
+    "totalAmount": "Total amount of the bucket",
+    "createdAt": "Timestamp; truncated to the hour in silver.myproperty_invoicebucket (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "updatedAt": "Timestamp; truncated to the hour in silver.myproperty_invoicebucket (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value"
+   }
+  },
+  "bronze_ref.myproperty_invoiceitemservice": {
+   "description": "Service-level line of an invoice item (meter quantities, unit price, VAT); the service name snapshot is not copied. (bronze_ref copy of a table that also exists as silver.myproperty_invoiceitemservice.)",
+   "key": "id",
+   "columns": {
+    "invoiceItemId": "Invoice item",
+    "serviceId": "Service",
+    "unit": "Unit snapshot of the billed service",
+    "unitPrice": "Unit price",
+    "formula": "Calculation formula",
+    "prevQuantity": "Previous reading/quantity",
+    "currentQuantity": "Current reading/quantity",
+    "quantity": "Billed quantity",
+    "lossDiff": "Loss difference",
+    "amount": "Amount",
+    "totalAmount": "Total amount",
+    "hasVat": "Whether VAT (НӨАТ) applies",
+    "vatAmount": "VAT (НӨАТ) amount"
+   }
+  },
+  "bronze_ref.myproperty_invoicepayment": {
+   "description": "Application of a payment to an invoice (no update timestamp in source); used by KPI 14/18 to find when an invoice was first paid. (bronze_ref copy of a table that also exists as silver.myproperty_invoicepayment.)",
+   "key": "id",
+   "joins": [
+    "invoiceId -> silver.myproperty_invoice.id",
+    "paymentId -> silver.myproperty_payment.id"
+   ],
+   "columns": {
+    "invoiceId": "Invoice the amount is applied to",
+    "paymentId": "Payment applied; nullable for applications coming from tenantBalance or deposits",
+    "appliedAmount": "Amount applied to the invoice",
+    "lateFeeId": "Late fee record",
+    "lateFeeAmount": "Late fee amount applied"
+   }
+  },
+  "bronze_ref.myproperty_meterreading": {
+   "description": "Time-series readings for smart meters, one row per reading (no update timestamp in source). (bronze_ref copy of a table that also exists as silver.myproperty_meterreading.)",
+   "key": "id",
+   "time_column": "readingAt",
+   "joins": [
+    "meterId -> silver.myproperty_meter.id"
+   ],
+   "columns": {
+    "id": "Primary key",
+    "meterId": "Meter (FK to meter.id)",
+    "invoiceMonth": "Billing month",
+    "readingAt": "Time of the reading; truncated to the hour in silver.myproperty_meterreading (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value",
+    "value": "Cumulative register value",
+    "delta": "Computed consumption for the interval",
+    "unit": "Unit at read time (kWh, m3, etc.)",
+    "quality": "GOOD | ESTIMATED | MISSING | ERROR",
+    "rssi": "RSSI at reception",
+    "snr": "SNR at reception",
+    "batteryLevel": "Battery at read time",
+    "createdAt": "Created time; truncated to the hour in silver.myproperty_meterreading (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value"
+   }
+  },
+  "bronze_ref.myproperty_qpayhistory": {
+   "description": "QPay invoice record for an invoice bucket; postData and qpayId are not copied. (bronze_ref copy of a table that also exists as silver.myproperty_qpayhistory.)",
+   "key": "id",
+   "joins": [
+    "invoiceBucketId -> silver.myproperty_invoicebucket.id"
+   ],
+   "columns": {
+    "invoiceBucketId": "Invoice bucket paid via QPay",
+    "stage": "Current processing stage of the QPay invoice"
+   }
+  },
+  "bronze_ref.myproperty_roomtype": {
+   "description": "Room type reference table (domain D1); names are not copied. (bronze_ref copy of a table that also exists as silver.myproperty_roomtype.)",
+   "key": "id",
+   "columns": {
+    "code": "Room type code",
+    "color": "Display colour",
+    "order": "Display order",
+    "status": "Status"
+   }
+  },
+  "bronze_ref.myproperty_service": {
+   "description": "Billable service reference (domain D4 Services & meters); names are not copied. (bronze_ref copy of a table that also exists as silver.myproperty_service.)",
+   "key": "id",
+   "columns": {
+    "unit": "Unit",
+    "order": "Display order",
+    "defaultPrice": "Default price",
+    "isMetered": "Whether the service is metered",
+    "contractType": "Contract type"
+   }
+  },
+  "bronze_ref.myproperty_servicepack": {
+   "description": "Service pack (e.g. parking, cooling, heating pack) per branch and building. (bronze_ref copy of a table that also exists as silver.myproperty_servicepack.)",
+   "key": "id",
+   "columns": {
+    "contractType": "Contract type",
+    "isActive": "Whether active",
+    "rentPrice": "Rent price",
+    "depositAmount": "Deposit amount"
+   }
+  },
+  "bronze_ref.myproperty_servicepackitem": {
+   "description": "Service included in a service pack, with price and quantity (no update timestamp in source). (bronze_ref copy of a table that also exists as silver.myproperty_servicepackitem.)",
+   "key": "id",
+   "joins": [
+    "servicePackId -> silver.myproperty_servicepack.id",
+    "serviceId -> silver.myproperty_service.id"
+   ],
+   "columns": {
+    "servicePackId": "Service pack",
+    "serviceId": "Service",
+    "price": "Price",
+    "quantity": "Quantity",
+    "lossDiff": "Loss difference",
+    "order": "Display order",
+    "hasVat": "Whether VAT (НӨАТ) applies",
+    "formula": "Calculation formula"
+   }
+  },
+  "bronze_ref.myproperty_vat": {
+   "description": "VAT (НӨАТ) receipt record for a payment; request/QR JSON is not copied. (bronze_ref copy of a table that also exists as silver.myproperty_vat.)",
+   "key": "id",
+   "columns": {
+    "paymentId": "Payment",
+    "status": "Status"
+   }
+  },
+  "bronze_ref.myproperty_worker": {
+   "description": "Worker account of the myproperty app (login, system role, position), one row per worker; names, contacts and the password hash are not copied. (bronze_ref copy of a table that also exists as silver.myproperty_worker.)",
+   "key": "id",
+   "columns": {
+    "id": "Worker id (passed through as a raw id; FK target of worker columns in the DDL)",
+    "branchId": "Branch this worker belongs to",
+    "role": "System role and access level",
+    "isActive": "Whether the worker account is active or suspended",
+    "lastLoginAt": "Last login time; truncated to the hour in silver.myproperty_worker (time_band rule). This bronze_ref copy is typed timestamp and may hold the untransformed value"
+   }
+  },
+  "silver.myproperty_action": {
+   "description": "Action reference table (domain D6 Workers, tasks & planning); one row per action, referenced by workerAction.actionId.",
+   "key": "id",
+   "columns": {
+    "id": "Action id; referenced by workerAction.actionId (DDL FK)"
+   }
+  },
+  "silver.myproperty_archivefile": {
+   "description": "Archived file metadata (domain D9 Integration & misc); file names, paths and URLs are masked, only type/size metadata is kept.",
+   "key": "id",
+   "columns": {
+    "mimeType": "File MIME type",
+    "fileSize": "File size"
+   }
+  },
+  "silver.myproperty_bankstatement": {
+   "description": "One row per bank statement line (transaction) of a branch; answers questions about incoming/outgoing bank transactions and how they were applied to contracts and payments (domain D3 Invoicing & payments).",
+   "key": "id",
+   "time_column": "transactionDate",
+   "joins": [
+    "id -> silver.myproperty_bankstatementpayment.bankStatementId"
+   ],
+   "columns": {
+    "bankCode": "Bank code",
+    "transactionDate": "Bank transaction time; truncated to the hour",
+    "amount": "Transaction amount",
+    "direction": "Transaction direction (source default 'CREDIT')",
+    "status": "Processing status of the statement line (source default 'NEW')",
+    "appliedAt": "Timestamp; truncated to the hour"
+   }
+  },
+  "silver.myproperty_bankstatementpayment": {
+   "description": "Allocation of a bank statement line to a payment and contract (DDL FKs to bankStatement, payment and contract).",
+   "key": "id",
+   "joins": [
+    "bankStatementId -> silver.myproperty_bankstatement.id",
+    "paymentId -> silver.myproperty_payment.id",
+    "contractId -> silver.myproperty_contract.id"
+   ],
+   "columns": {
+    "bankStatementId": "Bank statement line (FK to bankStatement.id)",
+    "paymentId": "Payment (FK to payment.id)",
+    "contractId": "Contract (FK to contract.id)",
+    "isDepositPayment": "Whether the allocation is a deposit payment",
+    "amount": "Allocated amount"
+   }
+  },
+  "silver.myproperty_block": {
+   "description": "One row per block (tower/wing) of a building (domain D1 Buildings, blocks & rooms).",
+   "key": "id",
+   "joins": [
+    "buildingId -> silver.myproperty_building.id"
+   ],
+   "columns": {
+    "buildingId": "Building the block belongs to (FK to building.id)",
+    "totalFloors": "Number of floors in this block",
+    "totalArea": "Total area (m²)"
+   }
+  },
+  "silver.myproperty_branch": {
+   "description": "One row per branch, the managing organisation in myproperty (domain D8 Branch & onboarding); holds branch settings such as the system fee.",
+   "key": "id",
+   "columns": {
+    "startDate": "Branch start date; truncated to the hour",
+    "subscriptionPlan": "Branch subscription plan",
+    "feePercent": "Branch system fee percentage, e.g. 2 means 2%",
+    "feeServiceIds": "Selected service IDs used as the fee base; empty means invoice totalAmount"
+   }
+  },
+  "silver.myproperty_branchbuilding": {
+   "description": "Link between a branch and a building, with the branch's role in that building (DDL FKs to branch and building).",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.myproperty_branch.id",
+    "buildingId -> silver.myproperty_building.id"
+   ],
+   "columns": {
+    "branchId": "Branch (FK to branch.id)",
+    "buildingId": "Building (FK to building.id)",
+    "role": "Branch role in the building, e.g. MAIN_MANAGER, MAINTENANCE_PARTNER, CLEANING_CONTRACTOR",
+    "isActive": "Whether the link is active"
+   }
+  },
+  "silver.myproperty_branchbuildingcorporate": {
+   "description": "Per branch and building corporate bank connection settings (the credential itself is never copied); domain D8.",
+   "key": "id",
+   "columns": {
+    "bankCode": "Bank code",
+    "startSyncDate": "Statement sync start date; truncated to the hour",
+    "fetchDebitStatements": "Whether debit statements are fetched"
+   }
+  },
+  "silver.myproperty_branchbuildingpaymentinfo": {
+   "description": "Per branch and building payment/invoicing settings (bank, rounding, system fee formula); bank account numbers are not copied.",
+   "key": "id",
+   "columns": {
+    "bankCode": "Bank code",
+    "depositBankCode": "Bank code for deposits",
+    "roundDecimal": "Decimal places to round invoice totals for this branch",
+    "feeFormula": "System fee rate as string (e.g. 0.02 for 2%)",
+    "startInvoiceDate": "Invoicing start date; truncated to the hour"
+   }
+  },
+  "silver.myproperty_branchbuildingvatinfo": {
+   "description": "Per branch and building VAT (НӨАТ) settings; the register number is not copied.",
+   "key": "id",
+   "columns": {
+    "districtCode": "District code",
+    "approved": "Whether approved",
+    "taxType": "Tax type",
+    "serviceCode": "Service code"
+   }
+  },
+  "silver.myproperty_branchinvoice": {
+   "description": "One row per branch invoice for the system fee of a period month (periodMonth = fee calculation period); answers branch fee billing and payment questions.",
+   "key": "id",
+   "time_column": "issueDate",
+   "joins": [
+    "walletId -> silver.myproperty_branchwallet.id"
+   ],
+   "columns": {
+    "walletId": "Branch wallet",
+    "periodMonth": "YYYY-MM of the fee calculation period",
+    "issueDate": "Issue date; truncated to the hour",
+    "dueDate": "Due date; truncated to the hour",
+    "baseAmount": "Fee base amount",
+    "feeRate": "Fee rate",
+    "totalAmount": "Total amount",
+    "paidAmount": "Amount paid",
+    "balance": "Outstanding balance",
+    "status": "Invoice status",
+    "autoPaid": "Whether paid automatically",
+    "autoPaidAt": "When auto-paid; truncated to the hour",
+    "lastPaidAt": "Last payment time; truncated to the hour"
+   }
+  },
+  "silver.myproperty_branchinvoicehistory": {
+   "description": "Change history of a branch invoice (action log); no update timestamp in source.",
+   "key": "id",
+   "columns": {
+    "branchInvoiceId": "Branch invoice the history entry belongs to",
+    "action": "Action recorded",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_branchregistration": {
+   "description": "Onboarding/registration progress of a branch (domain D8 Branch & onboarding).",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.myproperty_branch.id"
+   ],
+   "columns": {
+    "branchId": "Branch (FK to branch.id)",
+    "status": "Registration status",
+    "progressPercent": "Registration progress percentage",
+    "currentStep": "Current registration step",
+    "activatedAt": "Activation time; truncated to the hour",
+    "activatedBy": "Worker who activated the branch (FK to worker.id; passed through, not tokenised)"
+   }
+  },
+  "silver.myproperty_branchregistrationstep": {
+   "description": "One registration step of a branch's onboarding (DDL FKs to branch and worker).",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.myproperty_branch.id"
+   ],
+   "columns": {
+    "branchId": "Branch (FK to branch.id)",
+    "stepCode": "Step code",
+    "status": "Step status",
+    "completedAt": "Step completion time; truncated to the hour",
+    "completedBy": "UUID token of worker (FK to worker in the source DDL); not a real ID. Joins only to other token columns in the 'completedBy' namespace"
+   }
+  },
+  "silver.myproperty_branchsupportvar": {
+   "description": "Branch configuration variable table (waived 2026-10-02 as a filter false positive: configuration, not support tickets); variable names are not copied.",
+   "key": "id",
+   "columns": {
+    "formula": "Configured formula"
+   }
+  },
+  "silver.myproperty_branchwallet": {
+   "description": "Wallet of a branch; its movements (TOP_UP, FEE_DEBIT, ADJUSTMENT, REFUND) are in branchWalletTransaction.",
+   "key": "id",
+   "columns": {
+    "balance": "Wallet balance",
+    "currency": "Currency",
+    "status": "Wallet status",
+    "lastAutoChargeAt": "Last automatic charge time; truncated to the hour"
+   }
+  },
+  "silver.myproperty_branchwallettransaction": {
+   "description": "One row per branch wallet transaction (top-up, fee debit, adjustment, refund).",
+   "key": "id",
+   "joins": [
+    "walletId -> silver.myproperty_branchwallet.id"
+   ],
+   "columns": {
+    "walletId": "Branch wallet",
+    "type": "Transaction type: TOP_UP, FEE_DEBIT, ADJUSTMENT, REFUND",
+    "source": "Transaction source: SYSTEM, QPAY, BANK_STATEMENT, ADMIN",
+    "referenceType": "Type of the referenced record; determines what referenceId points to (polymorphic)",
+    "referenceId": "Id of the referenced record; target table is given by referenceType (polymorphic)",
+    "amount": "Transaction amount",
+    "balanceAfter": "Wallet balance after the transaction",
+    "vatId": "VAT (НӨАТ) receipt record"
+   }
+  },
+  "silver.myproperty_building": {
+   "description": "One row per managed building within each branch (property management system).",
+   "key": "id",
+   "columns": {
+    "id": "Primary key of the building",
+    "totalBlocks": "Number of blocks or towers in this building",
+    "totalFloors": "Total number of floors in the building",
+    "totalArea": "Total area (m²) covered by this building",
+    "constructionYear": "Year the building was constructed or commissioned",
+    "status": "Building operational status: ACTIVE / INACTIVE / UNDER_MAINTENANCE"
+   }
+  },
+  "silver.myproperty_capitalcategory": {
+   "description": "Capital asset category (domain D5 Capital assets); only the id is copied (name/description masked).",
+   "key": "id"
+  },
+  "silver.myproperty_capitalitem": {
+   "description": "One row per capital asset item (domain D5 Capital assets).",
+   "key": "id",
+   "time_column": "purchaseDate",
+   "joins": [
+    "categoryId -> silver.myproperty_capitalcategory.id"
+   ],
+   "columns": {
+    "categoryId": "Asset category",
+    "purchaseDate": "Purchase date; truncated to the hour",
+    "purchaseCost": "Purchase cost",
+    "quantity": "Quantity",
+    "condition": "Asset condition",
+    "warrantyExpireDate": "Warranty expiry date; truncated to the hour",
+    "depreciationRate": "Depreciation rate",
+    "status": "Asset status: ACTIVE, DISPOSED, LOST",
+    "createdBy": "UUID token of the person recorded in this column (entity type not documented); not a real ID. Joins only to other token columns in the 'createdBy' namespace"
+   }
+  },
+  "silver.myproperty_capitallocation": {
+   "description": "Location assignment of a capital asset (branch/building/block/floor/room columns); domain D5.",
+   "key": "id",
+   "columns": {
+    "capitalId": "Capital asset item",
+    "roomId": "UUID token of room; not a real ID. Joins only to other token columns in the 'roomId' namespace",
+    "assignedDate": "Assignment date; truncated to the hour"
+   }
+  },
+  "silver.myproperty_capitalmaintenance": {
+   "description": "One row per maintenance event on a capital asset (domain D5).",
+   "key": "id",
+   "time_column": "maintenanceDate",
+   "columns": {
+    "capitalId": "Capital asset item",
+    "maintenanceDate": "Maintenance date; truncated to the hour",
+    "maintenanceType": "Maintenance type",
+    "cost": "Maintenance cost"
+   }
+  },
+  "silver.myproperty_contract": {
+   "description": "One row per contract (гэрээ) with a tenant or owner counterparty in a building; answers contract counts, rent, deposit and status questions (domain D2 Contracts & tenancy).",
+   "key": "id",
+   "time_column": "startDate",
+   "joins": [
+    "id -> silver.myproperty_contractroom.contractId",
+    "id -> silver.myproperty_bankstatementpayment.contractId",
+    "id -> silver.myproperty_contractbalance.contract_id"
+   ],
+   "columns": {
+    "contractType": "Contract type",
+    "invoiceRecipientType": "Who receives the invoices",
+    "invoiceRecipientOwnerId": "UUID token of the owner (өмчлөгч) who receives the invoices; not a real ID. Joins only to other token columns in the 'invoiceRecipientOwnerId' namespace",
+    "counterpartyType": "Counterparty: TENANT (tenantId set, ownerId null) or OWNER (ownerId set, tenantId null), per DDL check constraint",
+    "startDate": "Contract start date; truncated to the hour",
+    "endDate": "Contract end date; truncated to the hour",
+    "rentPrice": "Rent price",
+    "depositAmount": "Deposit amount",
+    "depositBalance": "Deposit balance",
+    "paymentDueDay": "Payment due day of month",
+    "lateFeeRate": "Late fee rate",
+    "currency": "Currency code for the contract (e.g. MNT, USD, CNY)",
+    "status": "Contract status: ACTIVE, TERMINATED",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "ownerId": "UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_contractbalance": {
+   "description": "Current balance per contract (DDL FK contract_id -> contract.id).",
+   "key": "id",
+   "joins": [
+    "contract_id -> silver.myproperty_contract.id"
+   ],
+   "columns": {
+    "contract_id": "Contract (FK to contract.id)",
+    "balance": "Current balance",
+    "prevBalance": "Balance before the last update"
+   }
+  },
+  "silver.myproperty_contractbalancehistory": {
+   "description": "Change history of a contract balance, one row per balance movement (no update timestamp in source).",
+   "key": "id",
+   "joins": [
+    "contract_id -> silver.myproperty_contract.id",
+    "payment_id -> silver.myproperty_payment.id"
+   ],
+   "columns": {
+    "contract_id": "Contract (FK to contract.id)",
+    "payment_id": "Payment that caused the movement (FK to payment.id)",
+    "delta": "Balance change",
+    "prevBalance": "Balance before",
+    "balance": "Balance after"
+   }
+  },
+  "silver.myproperty_contractdeposithistory": {
+   "description": "Movement history of a contract's deposit (no update timestamp in source).",
+   "key": "id",
+   "columns": {
+    "type": "Movement type",
+    "amount": "Movement amount",
+    "balanceBefore": "Deposit balance before",
+    "balanceAfter": "Deposit balance after",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_contractdepositinvoice": {
+   "description": "One row per deposit invoice issued for a contract.",
+   "key": "id",
+   "time_column": "issuedAt",
+   "columns": {
+    "amount": "Deposit invoice amount",
+    "paidAmount": "Amount paid",
+    "balance": "Outstanding balance",
+    "status": "Status (source default 'INVOICED')",
+    "issuedAt": "Issue date; truncated to the hour",
+    "dueDate": "Due date; truncated to the hour",
+    "paidAt": "Paid time; truncated to the hour",
+    "paymentMethod": "Payment method",
+    "closedAt": "Closed time; truncated to the hour",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "createdBy": "UUID token of the person recorded in this column (entity type not documented); not a real ID. Joins only to other token columns in the 'createdBy' namespace"
+   }
+  },
+  "silver.myproperty_contracthistory": {
+   "description": "Change history of a contract.",
+   "key": "id",
+   "columns": {
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_contractremainreason": {
+   "description": "Reason record attached to a contract (DDL FKs to contract and worker); the note text is not copied.",
+   "key": "id",
+   "joins": [
+    "contract_id -> silver.myproperty_contract.id"
+   ],
+   "columns": {
+    "contract_id": "Contract (FK to contract.id)",
+    "worker_id": "UUID token of worker; not a real ID. Joins only to other token columns in the 'worker_id' namespace"
+   }
+  },
+  "silver.myproperty_contractroom": {
+   "description": "Links each contract to one or multiple rooms (supports multi-room contracts).",
+   "key": "id",
+   "joins": [
+    "contractId -> silver.myproperty_contract.id"
+   ],
+   "columns": {
+    "id": "Primary key of the contract-room link",
+    "contractId": "Linked contract (FK to contract.id)",
+    "servicePackId": "Linked service pack for this room under the contract",
+    "calculatedArea": "Area of the room at the time of contract signing",
+    "roomId": "UUID token of room; not a real ID. Joins only to other token columns in the 'roomId' namespace"
+   }
+  },
+  "silver.myproperty_contractroomservice": {
+   "description": "Service setup for each room under a contract; allows per-room service customisation (no update timestamp in source).",
+   "key": "id",
+   "columns": {
+    "serviceId": "Service",
+    "price": "Price",
+    "quantity": "Quantity",
+    "lossDiff": "Loss difference",
+    "formula": "Calculation formula",
+    "hasVat": "Whether VAT (НӨАТ) applies",
+    "contractRoomId": "UUID token of contractRoom record (a room under a contract); not a real ID. Joins only to other token columns in the 'contractRoomId' namespace"
+   }
+  },
+  "silver.myproperty_contracttemplate": {
+   "description": "Contract template with default terms per branch.",
+   "key": "id",
+   "columns": {
+    "category": "Template category: RENT, PARK, STORAGE, OFFICE, etc.",
+    "paymentDueDay": "Payment due day of month",
+    "lateFeeRate": "Late fee rate",
+    "durationMonths": "Duration in months",
+    "depositAmount": "Deposit amount",
+    "rentPrice": "Rent price",
+    "isActive": "Whether active"
+   }
+  },
+  "silver.myproperty_email": {
+   "description": "One row per email sent by the system (body, subject and recipient are not copied); answers email volume and delivery questions.",
+   "key": "id",
+   "columns": {
+    "ownerId": "UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace",
+    "type": "Type of email, e.g. INVOICE, CONTRACT, NOTIFICATION",
+    "deliveryStatus": "Delivery status: PENDING, SENT, FAILED",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_floor": {
+   "description": "One row per floor within blocks and buildings (blueprint/floorplan data itself is not copied).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "buildingId -> silver.myproperty_building.id",
+    "blockId -> silver.myproperty_block.id"
+   ],
+   "columns": {
+    "id": "Primary key of the floor",
+    "buildingId": "Parent building",
+    "blockId": "Block or tower this floor belongs to",
+    "level": "Numeric floor level (e.g. 12 or -1)",
+    "area": "Total area (m²) of this floor",
+    "totalRooms": "Number of rooms defined on this floor",
+    "status": "Floor status: ACTIVE / INACTIVE / UNDER_CONSTRUCTION",
+    "createdAt": "When this record was created; truncated to the hour",
+    "updatedAt": "Last record update; truncated to the hour"
+   }
+  },
+  "silver.myproperty_internalmilestone": {
+   "description": "Milestone of an internal plan, with recurrence settings (DDL FK planId -> internalPlan.id).",
+   "key": "id",
+   "joins": [
+    "planId -> silver.myproperty_internalplan.id"
+   ],
+   "columns": {
+    "planId": "Internal plan (FK to internalPlan.id)",
+    "dueDate": "Due date; truncated to the hour",
+    "recurrenceEndDate": "Recurrence end date; truncated to the hour",
+    "assignedWorkerIds": "UUID token of the assigned workers (list); not a real ID. Joins only to other token columns in the 'assignedWorkerIds' namespace"
+   }
+  },
+  "silver.myproperty_internalplan": {
+   "description": "Internal work plan of a branch (DDL FKs to branch and worker).",
+   "key": "id",
+   "time_column": "startDate",
+   "joins": [
+    "branchId -> silver.myproperty_branch.id"
+   ],
+   "columns": {
+    "branchId": "Branch (FK to branch.id)",
+    "startDate": "Plan start; truncated to the hour",
+    "endDate": "Plan end; truncated to the hour",
+    "createdBy": "UUID token of worker (FK to worker in the source DDL); not a real ID. Joins only to other token columns in the 'createdBy' namespace"
+   }
+  },
+  "silver.myproperty_internalworktask": {
+   "description": "Work task linked to an internal milestone occurrence (DDL FKs to internalMilestone, task and worker).",
+   "key": "id",
+   "time_column": "occurrenceDate",
+   "joins": [
+    "milestoneId -> silver.myproperty_internalmilestone.id",
+    "taskId -> silver.myproperty_task.id"
+   ],
+   "columns": {
+    "milestoneId": "Milestone (FK to internalMilestone.id)",
+    "occurrenceDate": "Occurrence date; truncated to the hour",
+    "taskId": "Task (FK to task.id)",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_invoice": {
+   "description": "One row per invoice (нэхэмжлэх) to a tenant or owner under a contract; answers invoice counts, amounts, ageing and payment-status questions (KPI 13, 14, 15, 18).",
+   "key": "id",
+   "time_column": "issueDate",
+   "joins": [
+    "id -> silver.myproperty_invoicepayment.invoiceId"
+   ],
+   "columns": {
+    "payerType": "Who pays: TENANT (tenantId set) or OWNER (ownerId set), per DDL check constraint. Not who created the invoice",
+    "invoiceMonth": "Billing month, YYYY-MM",
+    "issueDate": "Invoice issue date (KPI period filter); truncated to the hour",
+    "dueDate": "Due date; truncated to the hour",
+    "expectedPayDate": "Payment date planned by the user; truncated to the hour",
+    "totalAmount": "Invoice total amount",
+    "paidAmount": "Amount paid",
+    "balance": "Outstanding balance",
+    "status": "Invoice status (source default 'INACTIVE')",
+    "approvedAt": "Approval time; truncated to the hour",
+    "type": "Invoice type; DDL comment lists REGULAR, INSURANCE, MAINTENANCE, OTHER, CUSTOM, MONTHLY (the 2026-10-08 enum check found MONTHLY, REMAIN, OTHER, ADJUST, INSURANCE)",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "ownerId": "UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace",
+    "approvedBy": "UUID token of the person recorded in this column (entity type not documented); not a real ID. Joins only to other token columns in the 'approvedBy' namespace"
+   }
+  },
+  "silver.myproperty_invoicebucket": {
+   "description": "A bucket grouping several invoices (invoiceIds array); referenced by qpayHistory, the QPay invoice records.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "invoiceIds": "Ids of the invoices in the bucket",
+    "totalAmount": "Total amount of the bucket",
+    "createdAt": "Timestamp; truncated to the hour",
+    "updatedAt": "Timestamp; truncated to the hour"
+   }
+  },
+  "silver.myproperty_invoiceitem": {
+   "description": "One line item of an invoice, linked to a room.",
+   "key": "id",
+   "columns": {
+    "invoiceId": "Invoice",
+    "calculatedArea": "Snapshot of room area used for billing",
+    "amount": "Total amount for this invoice item",
+    "roomId": "UUID token of room; not a real ID. Joins only to other token columns in the 'roomId' namespace",
+    "contractRoomId": "UUID token of contractRoom record (a room under a contract); not a real ID. Joins only to other token columns in the 'contractRoomId' namespace"
+   }
+  },
+  "silver.myproperty_invoiceitemservice": {
+   "description": "Service-level line of an invoice item (meter quantities, unit price, VAT); the service name snapshot is not copied.",
+   "key": "id",
+   "columns": {
+    "invoiceItemId": "Invoice item",
+    "serviceId": "Service",
+    "unit": "Unit snapshot of the billed service",
+    "unitPrice": "Unit price",
+    "formula": "Calculation formula",
+    "prevQuantity": "Previous reading/quantity",
+    "currentQuantity": "Current reading/quantity",
+    "quantity": "Billed quantity",
+    "lossDiff": "Loss difference",
+    "amount": "Amount",
+    "totalAmount": "Total amount",
+    "hasVat": "Whether VAT (НӨАТ) applies",
+    "vatAmount": "VAT (НӨАТ) amount"
+   }
+  },
+  "silver.myproperty_invoicepayment": {
+   "description": "Application of a payment to an invoice (no update timestamp in source); used by KPI 14/18 to find when an invoice was first paid.",
+   "key": "id",
+   "joins": [
+    "invoiceId -> silver.myproperty_invoice.id",
+    "paymentId -> silver.myproperty_payment.id"
+   ],
+   "columns": {
+    "invoiceId": "Invoice the amount is applied to",
+    "paymentId": "Payment applied; nullable for applications coming from tenantBalance or deposits",
+    "appliedAmount": "Amount applied to the invoice",
+    "lateFeeId": "Late fee record",
+    "lateFeeAmount": "Late fee amount applied"
+   }
+  },
+  "silver.myproperty_meter": {
+   "description": "Smart meters across buildings/blocks/floors/rooms with network and billing linkage (domain D4 Services & meters).",
+   "key": "id",
+   "joins": [
+    "buildingId -> silver.myproperty_building.id",
+    "blockId -> silver.myproperty_block.id",
+    "floorId -> silver.myproperty_floor.id",
+    "serviceId -> silver.myproperty_service.id",
+    "id -> silver.myproperty_meterreading.meterId"
+   ],
+   "columns": {
+    "id": "Primary key",
+    "buildingId": "Building (FK)",
+    "blockId": "Block (FK)",
+    "floorId": "Floor (FK)",
+    "serviceId": "Service, the billing link (FK)",
+    "commodity": "ELECTRICITY | WATER | HEAT | GAS",
+    "meterType": "LORAWAN | NBIOT | MBUS | MANUAL",
+    "manufacturer": "Vendor / brand",
+    "model": "Model name or code",
+    "firmwareVersion": "Firmware version",
+    "unit": "kWh | m3 | GJ etc.",
+    "multiplier": "Pulse/transform factor",
+    "readingDirection": "FORWARD | REVERSE | NET",
+    "installDate": "Installation date; truncated to the hour",
+    "calibrationDate": "Last calibration date; truncated to the hour",
+    "calibrationDueDate": "Next calibration due; truncated to the hour",
+    "reportIntervalMinutes": "Telemetry report interval (minutes)",
+    "valveSupported": "Supports remote valve",
+    "valveState": "OPEN | CLOSED | UNKNOWN",
+    "lastValveActionAt": "Last valve actuation time; truncated to the hour",
+    "networkType": "LORA | NB-IOT | MBUS",
+    "rssi": "Signal RSSI",
+    "snr": "Signal SNR",
+    "batteryLevel": "Battery level % or V",
+    "status": "ACTIVE | INACTIVE | MAINTENANCE | RETIRED",
+    "lastReadingValue": "Cached last cumulative index",
+    "lastReadingAt": "Time of last reading; truncated to the hour",
+    "externalSyncedAt": "Timestamp; truncated to the hour",
+    "roomId": "UUID token of room; not a real ID. Joins only to other token columns in the 'roomId' namespace",
+    "contractRoomServiceId": "Contract room service link. Rule is now passthrough, but silver may still hold UUIDs written before the 2026-10-08 fix (only a reload recovers them)"
+   }
+  },
+  "silver.myproperty_meterreading": {
+   "description": "Time-series readings for smart meters, one row per reading (no update timestamp in source).",
+   "key": "id",
+   "time_column": "readingAt",
+   "joins": [
+    "meterId -> silver.myproperty_meter.id"
+   ],
+   "columns": {
+    "id": "Primary key",
+    "meterId": "Meter (FK to meter.id)",
+    "invoiceMonth": "Billing month",
+    "readingAt": "Time of the reading; truncated to the hour",
+    "value": "Cumulative register value",
+    "delta": "Computed consumption for the interval",
+    "unit": "Unit at read time (kWh, m3, etc.)",
+    "quality": "GOOD | ESTIMATED | MISSING | ERROR",
+    "rssi": "RSSI at reception",
+    "snr": "SNR at reception",
+    "batteryLevel": "Battery at read time",
+    "createdAt": "Created time; truncated to the hour"
+   }
+  },
+  "silver.myproperty_onboardingrequest": {
+   "description": "Onboarding request (domain D8 Branch & onboarding); codeHash, stateToken and email are not copied.",
+   "key": "id",
+   "columns": {
+    "status": "Request status",
+    "attemptCount": "Number of attempts",
+    "expiresAt": "Expiry time; truncated to the hour",
+    "verifiedAt": "Verification time; truncated to the hour",
+    "completedAt": "Completion time; truncated to the hour",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_owner": {
+   "description": "Property or unit owner (өмчлөгч) registry for office management, one row per owner; names, register numbers and contacts are not copied.",
+   "key": "id",
+   "columns": {
+    "id": "Transform rule says: UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace. BUT the lake column is int, i.e. still the raw source id (person-table PK migration not yet applied), so it does NOT join the 'ownerId' token columns of other tables",
+    "branchId": "Branch that manages this owner",
+    "type": "Owner type: INDIVIDUAL or COMPANY",
+    "userId": "UUID token of user in the central User Service (global user, unique by phone); not a real ID. Joins only to other token columns in the 'userId' namespace",
+    "ownershipType": "Ownership type: FULL / SHARED / LEASED. Rule is now passthrough, but silver may still hold UUIDs written before the 2026-10-08 fix"
+   }
+  },
+  "silver.myproperty_ownerhistory": {
+   "description": "Change history of an owner record (no update timestamp in source).",
+   "key": "id",
+   "columns": {
+    "action": "Action recorded",
+    "ownerId": "UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_payment": {
+   "description": "One row per payment received from a tenant or owner; answers payment volume, amount and method questions (KPI 14, 16, 18).",
+   "key": "id",
+   "time_column": "paymentDate",
+   "joins": [
+    "id -> silver.myproperty_invoicepayment.paymentId"
+   ],
+   "columns": {
+    "paymentDate": "Payment date (KPI period filter); truncated to the hour",
+    "paidAmount": "Amount paid",
+    "totalAmount": "Total amount",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "ownerId": "UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace",
+    "lateFeeAmount": "Late fee amount",
+    "depositUsedAmount": "Deposit amount used",
+    "method": "Payment instrument, e.g. BANK_TRANSFER, QPAY, CREDIT, ADJUSTMENT, DEPOSIT, DISCOUNT, CASH. It is the instrument, not the channel/app",
+    "status": "Payment status (source default 'CONFIRMED')",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_paymentreversehistory": {
+   "description": "Record of a reversed payment (reason text and tenant name are not copied).",
+   "key": "id",
+   "time_column": "paymentDate",
+   "columns": {
+    "paymentId": "Reversed payment",
+    "paymentDate": "Original payment date; truncated to the hour",
+    "paidAmount": "Amount paid",
+    "totalAmount": "Total amount",
+    "method": "Payment method",
+    "reversedBy": "Who reversed the payment (passed through, not tokenised)",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace"
+   }
+  },
+  "silver.myproperty_qpayhistory": {
+   "description": "QPay invoice record for an invoice bucket; postData and qpayId are not copied.",
+   "key": "id",
+   "joins": [
+    "invoiceBucketId -> silver.myproperty_invoicebucket.id"
+   ],
+   "columns": {
+    "invoiceBucketId": "Invoice bucket paid via QPay",
+    "stage": "Current processing stage of the QPay invoice"
+   }
+  },
+  "silver.myproperty_rentalagreement": {
+   "description": "One row per rental agreement of a room between an owner and a tenant (түрээслэгч) under a management contract; used for tenancy duration and tenant/owner transitions (KPI 20).",
+   "key": "id",
+   "time_column": "startDate",
+   "columns": {
+    "managementContractId": "Management contract the agreement falls under",
+    "startDate": "Agreement start date (end must be after start, DDL check); truncated to the hour",
+    "endDate": "Agreement end date; truncated to the hour",
+    "rentAmount": "Rent amount",
+    "depositAmount": "Deposit amount",
+    "paymentDueDay": "Payment due day of month (1-31, DDL check)",
+    "status": "Agreement status (source default 'ACTIVE')",
+    "terminatedAt": "Termination time; truncated to the hour",
+    "terminatedBy": "Who terminated it (passed through, not tokenised)",
+    "roomId": "UUID token of room; not a real ID. Joins only to other token columns in the 'roomId' namespace",
+    "ownerId": "UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "createdBy": "UUID token of the person recorded in this column (entity type not documented); not a real ID. Joins only to other token columns in the 'createdBy' namespace"
+   }
+  },
+  "silver.myproperty_room": {
+   "description": "One row per room/unit in a building (domain D1); answers stock-of-units questions by type, usage and area (KPI 7-12). Mostly commercial: few rows are dwellings.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "buildingId -> silver.myproperty_building.id",
+    "blockId -> silver.myproperty_block.id",
+    "floorId -> silver.myproperty_floor.id",
+    "contractId -> silver.myproperty_contract.id"
+   ],
+   "columns": {
+    "buildingId": "Building (FK to building.id)",
+    "blockId": "Block (FK to block.id)",
+    "floorId": "Floor (FK to floor.id)",
+    "area": "Room area",
+    "height": "Room height",
+    "volume": "Room volume",
+    "type": "Room type, self-describing codes: PARK = garage (граж), STORAGE = warehouse (агуулах), APARTMENT = dwelling (сууц), OFFICE/SHOP/MARKET/CLINIC/RESTAURANT/HOTEL/BANK/DRUGSTORE = commercial, OTHER = unknown (PARK/STORAGE meaning awaits myproperty confirmation)",
+    "usageStatus": "Usage status (source default 'VACANT')",
+    "contractId": "Contract (FK to contract.id)",
+    "hasMeter": "Whether the room has a meter",
+    "status": "Room status",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "ownerId": "UUID token of owner (өмчлөгч); not a real ID. Joins only to other token columns in the 'ownerId' namespace",
+    "createdAt": "Room record creation time (added 2026-10-09 for KPI growth); truncated to the hour"
+   }
+  },
+  "silver.myproperty_roomhistory": {
+   "description": "Change history of a room (split/merge and other actions); no update timestamp in source.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "actionType": "Action type",
+    "performedBy": "Worker or user ID who performed the action (passed through, not tokenised)",
+    "createdAt": "When the action was recorded; truncated to the hour",
+    "roomId": "UUID token of room; not a real ID. Joins only to other token columns in the 'roomId' namespace"
+   }
+  },
+  "silver.myproperty_roomtype": {
+   "description": "Room type reference table (domain D1); names are not copied.",
+   "key": "id",
+   "columns": {
+    "code": "Room type code",
+    "color": "Display colour",
+    "order": "Display order",
+    "status": "Status"
+   }
+  },
+  "silver.myproperty_service": {
+   "description": "Billable service reference (domain D4 Services & meters); names are not copied.",
+   "key": "id",
+   "columns": {
+    "unit": "Unit",
+    "order": "Display order",
+    "defaultPrice": "Default price",
+    "isMetered": "Whether the service is metered",
+    "contractType": "Contract type"
+   }
+  },
+  "silver.myproperty_servicepack": {
+   "description": "Service pack (e.g. parking, cooling, heating pack) per branch and building.",
+   "key": "id",
+   "columns": {
+    "contractType": "Contract type",
+    "isActive": "Whether active",
+    "rentPrice": "Rent price",
+    "depositAmount": "Deposit amount"
+   }
+  },
+  "silver.myproperty_servicepackitem": {
+   "description": "Service included in a service pack, with price and quantity (no update timestamp in source).",
+   "key": "id",
+   "joins": [
+    "servicePackId -> silver.myproperty_servicepack.id",
+    "serviceId -> silver.myproperty_service.id"
+   ],
+   "columns": {
+    "servicePackId": "Service pack",
+    "serviceId": "Service",
+    "price": "Price",
+    "quantity": "Quantity",
+    "lossDiff": "Loss difference",
+    "order": "Display order",
+    "hasVat": "Whether VAT (НӨАТ) applies",
+    "formula": "Calculation formula"
+   }
+  },
+  "silver.myproperty_servicepacksynctask": {
+   "description": "Background task that syncs a service pack to contracts.",
+   "key": "id",
+   "joins": [
+    "servicePackId -> silver.myproperty_servicepack.id"
+   ],
+   "columns": {
+    "status": "Task status",
+    "contractIds": "Contract ids to sync (list)",
+    "failedContractIds": "Contract ids that failed (list)",
+    "cursor": "Progress cursor",
+    "total": "Total items",
+    "completed": "Completed items",
+    "failed": "Failed items",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_task": {
+   "description": "One row per task in a branch (domain D6); title and description are not copied.",
+   "key": "id",
+   "time_column": "resolvedAt",
+   "columns": {
+    "category": "Task category",
+    "priority": "Priority enum: LOW, MEDIUM, HIGH, URGENT",
+    "status": "Status enum: OPEN, IN_PROGRESS, WAITING, RESOLVED, CLOSED",
+    "resolvedAt": "Resolution time; truncated to the hour",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "createdByWorkerId": "UUID token of the worker who created it; not a real ID. Joins only to other token columns in the 'createdByWorkerId' namespace",
+    "assignedWorkerId": "UUID token of the assigned worker; not a real ID. Joins only to other token columns in the 'assignedWorkerId' namespace"
+   }
+  },
+  "silver.myproperty_taskactivity": {
+   "description": "Activity on a task (comment, status change, assignment, update); note text is not copied.",
+   "key": "id",
+   "joins": [
+    "taskId -> silver.myproperty_task.id"
+   ],
+   "columns": {
+    "taskId": "Task",
+    "activityType": "Activity type enum: COMMENT, STATUS_CHANGE, ASSIGNMENT, UPDATE",
+    "fromStatus": "Status before",
+    "toStatus": "Status after",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_tenant": {
+   "description": "Tenant (түрээслэгч) registry linking to the central user service by userId, one row per tenant; answers tenant counts and growth (KPI 19). Names, register numbers and contacts are not copied.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "id": "Transform rule says: UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace. BUT the lake column is int, i.e. still the raw source id (person-table PK migration not yet applied), so it does NOT join the 'tenantId' token columns of other tables",
+    "branchId": "Branch that manages this tenant",
+    "type": "Tenant type: INDIVIDUAL or COMPANY",
+    "status": "ACTIVE / INACTIVE / BLACKLISTED",
+    "createdAt": "Record creation time (KPI 19 period filter); truncated to the hour",
+    "updatedAt": "Record last update time; truncated to the hour",
+    "userId": "UUID token of user in the central User Service (global user, unique by phone); not a real ID. Joins only to other token columns in the 'userId' namespace"
+   }
+  },
+  "silver.myproperty_tenantbalance": {
+   "description": "Current credit balance of a tenant.",
+   "key": "id",
+   "columns": {
+    "balance": "Positive balance = available credit; never negative",
+    "prevBalance": "Snapshot before last update",
+    "tenant_id": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenant_id' namespace"
+   }
+  },
+  "silver.myproperty_tenantbalancehistory": {
+   "description": "Movement history of a tenant's credit balance (no update timestamp in source).",
+   "key": "id",
+   "columns": {
+    "payment_id": "Payment; null when balance is consumed automatically without a payment record",
+    "delta": "Positive = credit added, negative = credit consumed",
+    "prevBalance": "Balance before",
+    "balance": "Balance after",
+    "tenant_id": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenant_id' namespace"
+   }
+  },
+  "silver.myproperty_tenanthistory": {
+   "description": "Change history of a tenant record (no update timestamp in source).",
+   "key": "id",
+   "columns": {
+    "action": "Action recorded",
+    "tenantId": "UUID token of tenant (түрээслэгч); not a real ID. Joins only to other token columns in the 'tenantId' namespace",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_vat": {
+   "description": "VAT (НӨАТ) receipt record for a payment; request/QR JSON is not copied.",
+   "key": "id",
+   "columns": {
+    "paymentId": "Payment",
+    "status": "Status"
+   }
+  },
+  "silver.myproperty_worker": {
+   "description": "Worker account of the myproperty app (login, system role, position), one row per worker; names, contacts and the password hash are not copied.",
+   "key": "id",
+   "columns": {
+    "id": "Worker id (passed through as a raw id; FK target of worker columns in the DDL)",
+    "branchId": "Branch this worker belongs to",
+    "role": "System role and access level",
+    "isActive": "Whether the worker account is active or suspended",
+    "lastLoginAt": "Last login time; truncated to the hour"
+   }
+  },
+  "silver.myproperty_workeraction": {
+   "description": "Link between a worker and an action (both foreign keys in the DDL).",
+   "key": "id",
+   "joins": [
+    "actionId -> silver.myproperty_action.id"
+   ],
+   "columns": {
+    "actionId": "Action (FK to action.id)",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_workerbuilding": {
+   "description": "Link between a worker and a building (DDL FKs to worker and building).",
+   "key": "id",
+   "joins": [
+    "buildingId -> silver.myproperty_building.id"
+   ],
+   "columns": {
+    "buildingId": "Building (FK to building.id)",
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace"
+   }
+  },
+  "silver.myproperty_workerlog": {
+   "description": "Log of changes to a worker (DDL FKs workerId and updatedBy -> worker).",
+   "key": "id",
+   "columns": {
+    "workerId": "UUID token of worker; not a real ID. Joins only to other token columns in the 'workerId' namespace",
+    "updatedBy": "UUID token of worker (FK to worker in the source DDL); not a real ID. Joins only to other token columns in the 'updatedBy' namespace"
+   }
+  }
+ }
+}

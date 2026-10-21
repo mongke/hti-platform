@@ -1,0 +1,3 @@
+source_system,source_table,column,rule,justification,approved_by
+myproperty,roomBooking,bookerSubjectId,CT016,"Identifier, not a message subject line. CT016 matched the substring ""subject""","HTI platform team 2026-10-02 (filter false positive, not a policy exemption)"
+myproperty,branchSupportVar,,CT014,"Configuration variable table, not a support-ticket table. CT014 matched the substring ""support""; it holds branch settings, no correspondence","HTI platform team 2026-10-02 (filter false positive, not a policy exemption)"

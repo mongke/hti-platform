@@ -1,0 +1,8 @@
+source_system,source_table,column,rule,justification,approved_by
+esukh,category,name,CT015,Category label (e.g. service category) - not a person name,demo-only (NOT a data-officer approval)
+esukh,methodtype,name,CT015,Payment method type label - not a person name,demo-only (NOT a data-officer approval)
+esukh,method,name,CT015,Payment method label - not a person name,demo-only (NOT a data-officer approval)
+esukh,module,name,CT015,Product module label - not a person name,demo-only (NOT a data-officer approval)
+esukh,service,name,CT015,Service catalogue label (e.g. heating water) - not a person name,demo-only (NOT a data-officer approval)
+esukh,reference,name,CT015,Administrative division and category label (Ulaanbaatar hot / Bayangol duureg / Bank / Uls). Checked all 521 rows: 250 carry admin markers the rest are category labels and the only 2 latin-word entries are admin and ZLAN - no personal names. workerId deliberately excluded,demo-only (NOT a data-officer approval)
+esukh,reference,shortname,CT015,Abbreviation of the same label (UB BGD BZD HUD) - not a person name,demo-only (NOT a data-officer approval)

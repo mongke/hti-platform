@@ -1,0 +1,148 @@
+esukh_graphsummary: id:integer, count:integer, amount:decimal(25,2), label:string, type:string, amount2:decimal(25,2), branchId:integer, month:integer, year:integer
+esukh_method: id:integer, name:string, isActive:boolean, quota:integer, methodTypeId:integer
+esukh_module: id:integer, name:string, logo:string, createdAt:timestamp, updatedAt:timestamp, paymentType:integer, basePrice:decimal(12,2)
+esukh_service: id:long, name:string, isDeleted:byte, date:timestamp, hasMeter:byte, stateBankId:integer
+myproperty_action: id:integer, rootId:integer, type:integer
+myproperty_archivefile: id:integer, branchId:integer, mimeType:string, fileSize:integer, uploadedBy:integer
+myproperty_bankstatement: id:integer, branchId:integer, bankCode:string, transactionDate:timestamp, amount:decimal(14,2), direction:string, status:string, contractId:integer, paymentId:integer, appliedBy:integer, appliedAt:timestamp
+myproperty_bankstatementpayment: id:integer, bankStatementId:integer, paymentId:integer, contractId:integer, isDepositPayment:boolean, amount:decimal(12,2)
+myproperty_block: id:integer, totalFloors:integer, totalArea:decimal(12,2), buildingId:string
+myproperty_branch: id:integer, startDate:timestamp, status:string, subscriptionPlan:string, showDetailedInfo:boolean, canSkipPay:boolean, canTerminateWithRemain:boolean, createVatOnSystemInvoicePayment:boolean, feePercent:decimal(7,4), feeServiceIds:string
+myproperty_branchbuilding: id:integer, branchId:integer, role:string, isActive:boolean, buildingId:string
+myproperty_branchbuildingcorporate: id:integer, branchId:integer, bankCode:string, status:string, startSyncDate:timestamp, fetchDebitStatements:boolean, buildingId:string
+myproperty_branchbuildingpaymentinfo: id:integer, bankCode:string, depositBankCode:string, roundDecimal:integer, feeFormula:string, branchId:integer, startInvoiceDate:timestamp, buildingId:string
+myproperty_branchbuildingvatinfo: id:integer, branchId:integer, districtCode:string, approved:boolean, taxType:string, serviceCode:string, buildingId:string
+myproperty_branchinvoice: id:integer, branchId:integer, walletId:integer, periodMonth:string, issueDate:date, dueDate:timestamp, baseAmount:decimal(14,2), feeRate:decimal(6,4), totalAmount:decimal(14,2), paidAmount:decimal(14,2), balance:decimal(14,2), status:string, autoPaid:boolean, autoPaidAt:timestamp, lastPaidAt:timestamp
+myproperty_branchinvoicehistory: id:integer, branchInvoiceId:integer, branchId:integer, action:string, workerId:string
+myproperty_branchregistration: id:integer, branchId:integer, status:string, progressPercent:integer, currentStep:string, activatedAt:timestamp, activatedBy:integer
+myproperty_branchregistrationstep: id:integer, branchId:integer, stepCode:string, status:string, completedAt:timestamp, completedBy:string
+myproperty_branchsupportvar: id:integer, branchId:integer, formula:string
+myproperty_branchwallet: id:integer, branchId:integer, balance:decimal(14,2), currency:string, status:string, lastAutoChargeAt:timestamp
+myproperty_branchwallettransaction: id:integer, walletId:integer, branchId:integer, type:string, source:string, referenceType:string, referenceId:integer, amount:decimal(14,2), balanceAfter:decimal(14,2), vatId:integer
+myproperty_building: id:integer, totalBlocks:integer, totalFloors:integer, totalArea:decimal(12,2), constructionYear:integer, status:string
+myproperty_capitalcategory: id:integer
+myproperty_capitalitem: id:integer, categoryId:integer, branchId:integer, purchaseDate:timestamp, purchaseCost:decimal(12,2), quantity:integer, condition:string, warrantyExpireDate:timestamp, depreciationRate:decimal(5,2), status:string, createdBy:string
+myproperty_capitallocation: id:integer, capitalId:integer, branchId:integer, buildingId:string, blockId:string, floorId:string, roomId:string, assignedTo:integer, assignedDate:timestamp
+myproperty_capitalmaintenance: id:integer, capitalId:integer, maintenanceDate:timestamp, maintenanceType:string, cost:decimal(12,2), performedBy:integer
+myproperty_contract: id:integer, contractType:string, invoiceRecipientType:string, invoiceRecipientOwnerId:string, invoiceRecipientRentalAgreementId:integer, counterpartyType:string, branchId:integer, startDate:timestamp, endDate:timestamp, rentPrice:decimal(12,2), rentServicePackId:integer, depositAmount:decimal(12,2), depositBalance:decimal(12,2), paymentDueDay:integer, lateFeeRate:decimal(6,4), currency:string, status:string, tenantId:string, ownerId:string, buildingId:string, workerId:string
+myproperty_contractbalance: id:integer, contract_id:integer, balance:decimal(12,2), prevBalance:decimal(12,2)
+myproperty_contractbalancehistory: id:integer, contract_id:integer, payment_id:integer, delta:decimal(12,2), prevBalance:decimal(12,2), balance:decimal(12,2)
+myproperty_contractdeposithistory: id:integer, contractId:integer, contractDepositInvoiceId:integer, paymentId:integer, type:string, amount:decimal(12,2), balanceBefore:decimal(12,2), balanceAfter:decimal(12,2), workerId:string
+myproperty_contractdepositinvoice: id:integer, contractId:integer, branchId:integer, amount:decimal(12,2), paidAmount:decimal(12,2), balance:decimal(12,2), status:string, issuedAt:date, dueDate:timestamp, paidAt:timestamp, paymentId:integer, paymentMethod:string, closedAt:timestamp, closedBy:integer, tenantId:string, createdBy:string
+myproperty_contracthistory: id:integer, contractId:integer, workerId:string
+myproperty_contractremainreason: id:integer, contract_id:integer, worker_id:string
+myproperty_contractroom: id:integer, contractId:integer, servicePackId:integer, calculatedArea:decimal(12,2), roomId:string
+myproperty_contractroomservice: id:integer, serviceId:integer, price:decimal(12,2), quantity:decimal(12,3), lossDiff:decimal(12,3), formula:string, hasVat:boolean, contractRoomId:string
+myproperty_contracttemplate: id:integer, category:string, paymentDueDay:integer, lateFeeRate:decimal(6,4), durationMonths:integer, depositAmount:decimal(12,2), rentPrice:decimal(12,2), servicePackId:integer, branchId:integer, isActive:boolean
+myproperty_email: id:integer, contractId:integer, ownerId:string, branchId:integer, invoiceId:integer, type:string, deliveryStatus:string, tenantId:string, workerId:string
+myproperty_floor: id:integer, level:integer, area:decimal(12,2), totalRooms:integer, status:string, createdAt:timestamp, updatedAt:timestamp, buildingId:string, blockId:string
+myproperty_internalmilestone: id:integer, planId:integer, dueDate:timestamp, offsetDays:string, recurrenceType:string, recurrenceInterval:integer, recurrenceWeekdays:string, recurrenceMonthDay:integer, recurrenceEndDate:timestamp, isActive:boolean, order:integer, assignedWorkerIds:string
+myproperty_internalplan: id:integer, branchId:integer, startDate:timestamp, endDate:timestamp, isActive:boolean, createdBy:string
+myproperty_internalworktask: id:integer, milestoneId:integer, offsetDays:integer, occurrenceDate:timestamp, taskId:integer, workerId:string
+myproperty_invoice: id:integer, contractId:integer, payerType:string, branchId:integer, invoiceMonth:string, issueDate:date, dueDate:timestamp, expectedPayDate:timestamp, totalAmount:decimal(12,2), paidAmount:decimal(12,2), balance:decimal(12,2), status:string, approvedBy:integer, approvedAt:timestamp, type:string, tenantId:string, ownerId:string
+myproperty_invoicebucket: id:integer, invoiceIds:struct, totalAmount:decimal(20,2), branchId:integer, contractId:integer, createdAt:timestamp, updatedAt:timestamp
+myproperty_invoiceitem: id:integer, invoiceId:integer, calculatedArea:decimal(12,2), amount:decimal(12,2), roomId:string, contractRoomId:string
+myproperty_invoiceitemservice: id:integer, invoiceItemId:integer, serviceId:integer, unit:string, unitPrice:decimal(14,2), formula:string, prevQuantity:decimal(12,3), currentQuantity:decimal(12,3), quantity:decimal(12,3), lossDiff:decimal(12,3), amount:decimal(14,2), totalAmount:decimal(14,2), hasVat:boolean, vatAmount:decimal(14,2)
+myproperty_invoicepayment: id:integer, invoiceId:integer, paymentId:integer, appliedAmount:decimal(12,2), lateFeeId:integer, lateFeeAmount:decimal(12,2)
+myproperty_meter: id:integer, branchId:integer, contractRoomServiceId:integer, serviceId:integer, commodity:string, meterType:string, manufacturer:string, model:string, firmwareVersion:string, unit:string, multiplier:decimal(12,4), readingDirection:string, installDate:timestamp, calibrationDate:timestamp, calibrationDueDate:timestamp, reportIntervalMinutes:integer, valveSupported:boolean, valveState:string, lastValveActionAt:timestamp, networkType:string, rssi:decimal(6,2), snr:decimal(6,2), batteryLevel:decimal(6,2), status:string, lastReadingValue:decimal(18,6), lastReadingAt:timestamp, externalProvider:string, externalSyncedAt:timestamp, buildingId:string, blockId:string, floorId:string, roomId:string
+myproperty_meterreading: id:integer, meterId:integer, invoiceMonth:string, readingAt:timestamp, value:decimal(18,6), delta:decimal(18,6), unit:string, quality:string, rssi:decimal(6,2), snr:decimal(6,2), batteryLevel:decimal(6,2), createdAt:timestamp
+myproperty_onboardingrequest: id:integer, status:string, attemptCount:integer, expiresAt:timestamp, verifiedAt:timestamp, completedAt:timestamp, branchId:integer, workerId:string
+myproperty_owner: id:integer, branchId:integer, type:string, userId:string, ownershipType:string
+myproperty_ownerhistory: id:integer, action:string, ownerId:string, workerId:string
+myproperty_payment: id:integer, paymentDate:timestamp, paidAmount:decimal(12,2), totalAmount:decimal(12,2), tenantId:string, ownerId:string, branchId:integer, contractId:integer, lateFeeAmount:decimal(12,2), depositUsedAmount:decimal(12,2), method:string, status:string, workerId:string
+myproperty_paymentreversehistory: id:integer, paymentId:integer, branchId:integer, contractId:integer, paymentDate:timestamp, paidAmount:decimal(12,2), totalAmount:decimal(12,2), method:string, reversedBy:integer, buildingId:string, tenantId:string
+myproperty_qpayhistory: id:integer, invoiceBucketId:integer, stage:string
+myproperty_rentalagreement: id:integer, branchId:integer, managementContractId:integer, startDate:timestamp, endDate:timestamp, rentAmount:decimal(12,2), depositAmount:decimal(12,2), paymentDueDay:integer, status:string, terminatedAt:timestamp, terminatedBy:integer, roomId:string, ownerId:string, tenantId:string, createdBy:string
+myproperty_room: id:integer, area:decimal(12,2), height:decimal(12,2), volume:decimal(14,2), type:string, usageStatus:string, contractId:integer, hasMeter:boolean, status:string, buildingId:string, blockId:string, floorId:string, tenantId:string, ownerId:string
+myproperty_roomhistory: id:integer, actionType:string, performedBy:integer, createdAt:timestamp, roomId:string
+myproperty_roomtype: id:integer, code:string, color:string, order:integer, status:string
+myproperty_service: id:integer, unit:string, order:integer, defaultPrice:decimal(15,2), isMetered:boolean, contractType:string
+myproperty_servicepack: id:integer, branchId:integer, contractType:string, isActive:boolean, rentPrice:decimal(12,2), depositAmount:decimal(12,2), buildingId:string
+myproperty_servicepackitem: id:integer, servicePackId:integer, serviceId:integer, price:decimal(15,2), quantity:decimal(12,3), lossDiff:decimal(12,3), order:integer, hasVat:boolean, formula:string
+myproperty_servicepacksynctask: id:integer, servicePackId:integer, branchId:integer, status:string, contractIds:string, failedContractIds:string, cursor:integer, total:integer, completed:integer, failed:integer, workerId:string
+myproperty_task: id:integer, branchId:integer, category:string, priority:string, status:string, resolvedAt:timestamp, tenantId:string, createdByWorkerId:string, assignedWorkerId:string
+myproperty_taskactivity: id:integer, taskId:integer, activityType:string, fromStatus:string, toStatus:string, workerId:string
+myproperty_tenant: id:integer, branchId:integer, type:string, status:string, createdAt:timestamp, updatedAt:timestamp, userId:string
+myproperty_tenantbalance: id:integer, balance:decimal(12,2), prevBalance:decimal(12,2), tenant_id:string
+myproperty_tenantbalancehistory: id:integer, payment_id:integer, delta:decimal(12,2), prevBalance:decimal(12,2), balance:decimal(12,2), tenant_id:string
+myproperty_tenanthistory: id:integer, action:string, tenantId:string, workerId:string
+myproperty_vat: id:integer, branchId:integer, paymentId:integer, status:string
+myproperty_worker: id:integer, branchId:integer, role:string, isActive:boolean, lastLoginAt:timestamp
+myproperty_workeraction: id:integer, actionId:integer, workerId:string
+myproperty_workerbuilding: id:integer, workerId:string, buildingId:string
+myproperty_workerlog: id:integer, branchId:integer, workerId:string, updatedBy:string
+parkly_accesstime: id:integer, parkId:integer, hourType:double, createdAt:timestamp, updatedAt:timestamp
+parkly_branch_types: id:integer, updatedAt:timestamp, createdAt:timestamp
+parkly_branchexternalsystem: id:integer, branchId:integer, systemCode:string, externalBranchId:string, config:string, isActive:boolean, createdAt:timestamp, updatedAt:timestamp
+parkly_camera: id:integer, branchId:integer, parkId:integer, ip:string, pass:string, insertEndPoint:string, deleteEndPoint:string, updateEndPoint:string, getEndPoint:string, position:string, cameraType:string, authType:string, inTime:timestamp, outTime:timestamp, groupCode:integer, addSignature:string, deleteSignature:string, selectSignature:string, getRecordSignature:string, parkingLot:integer, createdAt:timestamp, updatedAt:timestamp, gate_id:integer, access:string, realTime:boolean, online:boolean, ledDisplay:string, ledPort:integer, ledMirror:boolean, version:string, user:string, templateId:string
+parkly_camera_health_log: id:integer, cameraId:integer, branchId:integer, parkId:integer, offlineAt:timestamp, onlineAt:timestamp, downtimeSeconds:integer, createdAt:timestamp, updatedAt:timestamp, isPaid:boolean, processedPlates:string
+parkly_compare: compare_id:long, branch_id:integer, park_id:integer, carConfig_id:integer, type:string, success:integer, beginDate:timestamp, endDate:timestamp, createdAt:timestamp, device:string, plateNumber:string, owner:string
+parkly_compareprocess: id:integer, branch_id:integer, park_id:integer, process:string, branch_active:integer, beginDate:timestamp, endDate:timestamp, updatedAt:timestamp, createdAt:timestamp, actionType:string
+parkly_delivery_branch_park: id:integer, branch_id:integer, park_id:integer, is_deleted:boolean, created_at:timestamp, updated_at:timestamp
+parkly_delivery_branch_settings: id:integer, branch_id:integer, service_type:string, is_active:boolean, is_approved:boolean, approved_at:timestamp, approved_by:integer, monthly_slot_price:decimal(10,2), usage_price:decimal(10,2), payment_mode:string, wallet_balance:decimal(12,2), credit_limit:decimal(12,2), is_credit_blocked:boolean, auto_recharge:boolean, recharge_threshold:decimal(10,2), recharge_amount:decimal(10,2), total_vehicles:integer, active_vehicles:integer, total_revenue:decimal(15,2), last_usage_date:timestamp, is_deleted:boolean, created_at:timestamp, updated_at:timestamp, allow_all_parks:boolean
+parkly_delivery_pricing_config: id:integer, config_key:string, config_value:decimal(10,2), sort_order:integer, is_active:boolean, version:integer, updated_by:integer, is_deleted:boolean, created_at:timestamp, updated_at:timestamp
+parkly_delivery_slot: id:integer, branch_id:integer, slot_type:string, start_date:timestamp, end_date:timestamp, price:decimal(10,2), applied_price:decimal(10,2), is_paid:boolean, payment_id:integer, status:string, max_vehicles:integer, is_deleted:boolean, created_by:integer, created_at:timestamp, updated_at:timestamp
+parkly_delivery_wallet_transaction: id:integer, branch_id:integer, type:string, amount:decimal(12,2), balance_before:decimal(12,2), balance_after:decimal(12,2), related_type:string, related_id:integer, payment_method:string, transaction_id:string, invoice_number:string, created_by:integer, approved_by:integer, status:string, is_deleted:boolean, created_at:timestamp, updated_at:timestamp
+parkly_discounts: id:long, type:string, value:integer, main:boolean, updatedAt:timestamp, createdAt:timestamp, variable:string, formula:string
+parkly_externalsystem: id:integer, code:string, isActive:boolean, createdAt:timestamp, updatedAt:timestamp, dataSchema:string
+parkly_gate: id:integer, branchId:string, parkId:string, isDeleted:boolean, createdAt:timestamp, updatedAt:timestamp
+parkly_group: id:integer, createdAt:timestamp, updatedAt:timestamp, type:string, icon:string
+parkly_guest_payment_config: id:integer, branch_id:integer, park_id:integer, payment_responsible:string, allow_prepayment:boolean, allow_postpayment:boolean, notify_overtime:boolean, overtime_grace_minutes:integer, is_active:boolean, created_at:timestamp, updated_at:timestamp, status:string, idempotency_key:string, guest_car_config_id:string, resident_user_id:string
+parkly_park: id:integer, branchId:integer, parkType:string, location:string, isPaid:boolean, fee:integer, parkingSpaces:integer, numberRecog:boolean, type:string, bank:string, park_uuid:string, formula:string, isDeleted:integer, createdAt:timestamp, updatedAt:timestamp, penaliseFee:integer, vat:boolean, parentOrChild:string, parentParkId:integer, sortOrder:integer, workerId:string
+parkly_parkaccessconfig: id:integer, parkId:integer, permaCar:integer, tempCar:integer, permaLimit:integer, tempLimit:integer, createdAt:timestamp, updatedAt:timestamp, permaAANCar:integer, permaAANLimit:integer, tempAANCar:integer, tempAANLimit:integer
+parkly_parkcarmirror: id:integer, branchId:integer, sourceParkId:integer, targetParkId:integer, targetGroupId:integer, isActive:boolean, isDeleted:integer, createdAt:timestamp, updatedAt:timestamp
+parkly_parkfee: id:long, branchId:integer, parkId:integer, groupId:integer, formula:string, validPeriod:string, calcRules:string, updatedAt:timestamp, createdAt:timestamp
+parkly_paymentoptions: id:long, icon:string, active:boolean, show:boolean, prepaid:boolean, updatedAt:timestamp, createdAt:timestamp
+parkly_qrcodecontroller: id:long, branchId:integer, parkId:integer, cameraId:integer, count:integer, defaultLink:string, mainLink:string, updatedAt:timestamp, createdAt:timestamp
+parkly_routerconfig: id:integer, branchId:integer, parkId:integer, routerIp:string, routerPass:string, anydeskId:string, anydeskPass:string, externalIpBillingType:string, extraConfig:string, createdAt:timestamp, updatedAt:timestamp, routerUser:string
+parkly_spaychecklog: id:integer, secureId:string, inRecord_id:integer, option_id:integer, createdAt:timestamp, updatedAt:timestamp, reportError:string
+parkly_workerpark: id:integer, parkId:integer, createdAt:timestamp, updatedAt:timestamp, cameraId:integer, workerId:string
+sma_adminlogins: id:integer, createdAt:timestamp, updatedAt:timestamp
+sma_aiinfos: id:integer, robotLogo:string, device:string, createdAt:timestamp, updatedAt:timestamp, userId:string
+sma_auctionsubscriptionbills: id:integer, propertySaleRentId:integer, price:decimal(20,2), status:string, days:integer, methodType:string, vatType:string, createdAt:timestamp, updatedAt:timestamp, vatData:string, userId:string
+sma_dealactions: id:integer, dealId:integer, action:string, at:timestamp, payload:string, createdAt:timestamp, updatedAt:timestamp, actorUserId:string, agentId:string
+sma_directoffers: id:integer, towns:string, propertyType:string, type:string, price:decimal(15,2), billStatus:string, paidAt:timestamp, journalNo:string, createdAt:timestamp, updatedAt:timestamp, vatInfo:string, stage:string, userId:string
+sma_iotsubscriptions: id:integer, priceInfoId:integer, price:decimal(20,2), startDate:timestamp, endDate:timestamp, quota:integer, createdAt:timestamp, updatedAt:timestamp, priceInfoMethodId:integer, vatInfo:string, userId:string
+sma_notifyons: id:integer, notifyType:string, subType:string, enabled:boolean, createdAt:timestamp, updatedAt:timestamp, userId:string
+sma_propertysalerentimages: id:integer, fullUrl:string, propertySaleRentId:integer, createdAt:timestamp, updatedAt:timestamp
+sma_propertysalerentofferhistories: id:integer, action:string, detail:string, propertySaleRentOfferId:integer, createdAt:timestamp, updatedAt:timestamp
+sma_propertysalerentoffers: id:integer, propertyId:integer, propertySaleRentId:integer, offerPrice:decimal(10,0), createdAt:timestamp, updatedAt:timestamp, stage:string, approvedDate:timestamp, userId:string
+sma_propertysalerents: id:integer, type:string, propertyId:integer, propertyType:string, price:decimal(15,0), floor:integer, roomCount:integer, townId:integer, avgPayment:decimal(10,2), size:decimal(8,2), createdAt:timestamp, updatedAt:timestamp, stage:string, coordinate:string, expiresAt:timestamp, startPrice:decimal(15,0), rentCondition:string, auction:byte, userId:string
+sma_smaerrors: id:integer, createdAt:timestamp, updatedAt:timestamp, userId:string
+sma_statisticresults: id:integer, statisticId:integer, result:string, calculationTime:integer, createdAt:timestamp, updatedAt:timestamp
+sma_subscriptionbills: id:integer, priceInfoMethodId:integer, price:decimal(20,2), status:string, priceInfoId:integer, createdAt:timestamp, updatedAt:timestamp, methodType:string, quota:integer, vatType:string, userId:string
+sma_useractionlogs: id:integer, action:string, createdAt:timestamp, updatedAt:timestamp, sessionId:string, screen:string, metaData:string, userId:string
+sma_userapplogs: id:integer, updatedAt:timestamp, createdAt:timestamp, userId:string
+sma_usercars: createdAt:timestamp, updatedAt:timestamp, userId:string, carId:string
+sma_userlogs: id:integer, action:string, createdAt:timestamp, updatedAt:timestamp, userId:string
+smartpay_admin: id:integer, createdAt:timestamp, updatedAt:timestamp
+smartpay_aifunctioncall: id:integer, createdAt:timestamp, updatedAt:timestamp
+smartpay_banktransactionlog: id:integer, trnDate:timestamp, journalNo:string, recordId:integer, createdAt:timestamp, updatedAt:timestamp, amount:decimal(20,2), remain:decimal(25,2), relatedAccount:string
+smartpay_card: id:integer, brand:string, status:string, color:string, createdAt:timestamp, updatedAt:timestamp, approved:boolean, userId:string
+smartpay_faq: id:integer, type:string, createdAt:timestamp, updatedAt:timestamp, aiFunctionCallId:integer
+smartpay_incometransaction: id:integer, bankCode:string, status:string, settledAt:timestamp, journalNo:string, amount:decimal(20,2), createdAt:timestamp, updatedAt:timestamp, fee:decimal(20,2), merchantId:string, merchantSettleId:string
+smartpay_invoice: id:integer, returnUrl:string, successCallback:string, callBackResponse:string, amount:decimal(20,2), status:string, productPaymentType:string, secureId:string, feeAmount:decimal(20,2), totalAmount:decimal(25,2), invoiceItemCount:integer, createdAt:timestamp, updatedAt:timestamp, paymentMethodId:integer, userId:string, merchantId:string
+smartpay_invoiceitem: id:integer, amount:decimal(20,2), status:string, successCallback:string, bankCode:string, callBackResponse:string, invoiceId:integer, productTypeId:integer, vatInfoId:integer, transactionId:integer, data:string, createdAt:timestamp, updatedAt:timestamp
+smartpay_invoiceitemvatinfo: id:integer, type:string, qrJson:string, status:string, createdAt:timestamp, updatedAt:timestamp, requestData:string, time:decimal(7,2)
+smartpay_log: id:integer, ip:string, data:string, createdAt:timestamp, updatedAt:timestamp, merchantId:string
+smartpay_merchant: id:integer, productTypeId:integer, feePercent:decimal(10,2), spayFeePercent:decimal(10,2), bankCode:string, createdAt:timestamp, updatedAt:timestamp, userFee:decimal(10,2), iconPath:string, slogan:string, pack:string, userFeeType:string
+smartpay_merchantbillings: id:integer, billFeeType:string, billFee:decimal(20,2), createdAt:timestamp, updatedAt:timestamp, merchantId:string
+smartpay_merchantinvoicecountdetails: id:integer, count:integer, createdAt:timestamp, updatedAt:timestamp, rate:decimal(20,2), total:decimal(20,2), merchantInvoiceId:string
+smartpay_merchantinvoiceitems: id:integer, quantity:integer, rate:decimal(10,2), amount:decimal(12,2), createdAt:timestamp, updatedAt:timestamp, merchantInvoiceId:string
+smartpay_merchantinvoices: id:integer, dueDate:timestamp, total:decimal(12,2), paid:decimal(12,2), status:string, createdAt:timestamp, updatedAt:timestamp, paidJournalNo:string, paidDate:timestamp, validUntil:date, vatLogId:integer, amount:decimal(12,2), vatAmount:decimal(12,2), merchantId:string
+smartpay_merchantpermission: id:integer, permissionId:integer, createdAt:timestamp, updatedAt:timestamp, merchantId:string
+smartpay_merchantsettle: id:integer, amount:decimal(20,2), count:integer, spayFeePercent:decimal(10,2), status:string, settledAt:timestamp, createdAt:timestamp, updatedAt:timestamp, settledType:string, subMerchantAmount:decimal(20,2), merchantAmount:decimal(20,2), xpayAmount:decimal(20,2), processingAmount:decimal(20,2), merchantId:string
+smartpay_negdihistory: id:integer, invoiceId:integer, checkid:string, tranid:string, status:string, settleId:integer, paymentType:string, createdAt:timestamp, updatedAt:timestamp
+smartpay_negdijoincardhistory: id:integer, checkid:string, tranid:string, status:string, cancelStatus:string, cancelApprovalCode:string, amount:decimal(10,2), createdAt:timestamp, updatedAt:timestamp, userId:string
+smartpay_paymentmethod: id:integer, createdAt:timestamp, updatedAt:timestamp
+smartpay_permission: id:integer, type:string, createdAt:timestamp, updatedAt:timestamp
+smartpay_pos: id:integer, supplier:string, mark:string, status:string, createdAt:timestamp, updatedAt:timestamp, vatMerchantId:string
+smartpay_producttype: id:integer, paymentType:string, createdAt:timestamp, updatedAt:timestamp, settleType:string
+smartpay_qpayhistory: id:integer, invoiceId:integer, qpayId:string, callBackUrl:string, status:string, checked:boolean, createdAt:timestamp, updatedAt:timestamp, qpayType:string
+smartpay_sbincome: id:integer, date:timestamp, total:decimal(20,2), commission:decimal(20,2), merchantFee:decimal(20,2), billingSubs:decimal(20,2), createdAt:timestamp, updatedAt:timestamp
+smartpay_sbincomebymerchant: id:integer, date:timestamp, total:decimal(20,2), commission:decimal(20,2), merchantFee:decimal(20,2), billingSubs:decimal(20,2), createdAt:timestamp, updatedAt:timestamp, sbIncomeId:integer, merchantId:string
+smartpay_transaction: id:integer, invoiceItemId:integer, bankCode:string, status:string, settledAt:timestamp, journalNo:string, settleType:string, amount:decimal(20,2), merchantFee:decimal(20,2), spayFee:decimal(20,2), createdAt:timestamp, updatedAt:timestamp, merchantFeePercent:decimal(5,2), xpayFee:decimal(20,2), xpayFeePercent:decimal(5,2), afterFeeAmount:decimal(20,2), processingFee:decimal(20,2), processingFeePercent:decimal(5,2), type:string, merchantSettleId:string
+smartpay_transactionbucket: id:integer, transactionIds:string, createdAt:timestamp, updatedAt:timestamp, totalAmount:decimal(20,2), totalCount:decimal(38,18), bankCode:string, status:string, totalFee:decimal(20,2), merchantId:string
+smartpay_vatlog: id:integer, ip:string, qrJson:string, requestData:string, status:string, createdAt:timestamp, updatedAt:timestamp, time:decimal(7,2), merchantId:string
+smartpay_vatmerchant: id:integer, serviceCode:string, vatDistrictCode:string, taxType:string, taxProductCode:string, approved:string, status:string, createdAt:timestamp, updatedAt:timestamp, feePercent:decimal(5,2), bankCode:string, individual:boolean, createrMerchantId:string, merchantTin:string
+smartpay_vatmerchantpos: id:integer, posId:integer, createdAt:timestamp, updatedAt:timestamp, poId:integer, vatMerchantId:string

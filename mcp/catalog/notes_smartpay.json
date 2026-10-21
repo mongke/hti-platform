@@ -1,0 +1,583 @@
+{
+ "systems": {
+  "smartpay": {
+   "description": "SmartPay is HTI's payment system (claude.md), feeding the Smart Mongol app KPIs: invoices and payments (cards, QPay and Negdi gateways), transactions and merchant settlement, fee distribution and income, merchants, invoices SmartPay issues to merchants, and VAT e-receipts (И-баримт). Source is the smartpay_db Postgres database (37 tables); 31 tables are in phase 1 under the team's columns document, people and merchants appear only as UUID tokens."
+  }
+ },
+ "tables": {
+  "bronze_ref.smartpay_admin": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_admin; silver is the complete layer — prefer silver.smartpay_admin.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)"
+   }
+  },
+  "bronze_ref.smartpay_aifunctioncall": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_aifunctioncall; silver is the complete layer — prefer silver.smartpay_aifunctioncall.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "name": "Function name (reference label; kept by the team document)."
+   }
+  },
+  "bronze_ref.smartpay_banktransactionlog": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_banktransactionlog; silver is the complete layer — prefer silver.smartpay_banktransactionlog.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "trnDate": "Bank transaction date. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "journalNo": "Bank transaction journal number (гүйлгээний журнал, per the smartpay team's columns document).",
+    "bankName": "Bank name (flagged as possible identity data in the schema analysis but kept by the team document)."
+   }
+  },
+  "bronze_ref.smartpay_faq": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_faq; silver is the complete layer — prefer silver.smartpay_faq.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)"
+   }
+  },
+  "bronze_ref.smartpay_invoiceitem": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_invoiceitem; silver is the complete layer — prefer silver.smartpay_invoiceitem.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "invoiceId": "Invoice this item belongs to (DDL FK to invoice.id).",
+    "productTypeId": "Product type of the item (DDL FK to productType.id).",
+    "transactionId": "Transaction for the item (DDL FK to transaction.id).",
+    "vatInfoId": "VAT information record of the item (DDL FK to invoiceItemVatInfo.id).",
+    "bankCode": "Bank code (банкны код, per the smartpay team's columns document)."
+   }
+  },
+  "bronze_ref.smartpay_invoiceitemvatinfo": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_invoiceitemvatinfo; silver is the complete layer — prefer silver.smartpay_invoiceitemvatinfo.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)"
+   }
+  },
+  "bronze_ref.smartpay_merchantpermission": {
+   "description": "Stale reference-layer copy (layer orphan, claude.md 5i/5j) of silver.smartpay_merchantpermission; may be out of date — use silver.smartpay_merchantpermission.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "merchantId": "UUID token of the merchant — not a real ID."
+   }
+  },
+  "bronze_ref.smartpay_negdihistory": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_negdihistory; silver is the complete layer — prefer silver.smartpay_negdihistory.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)"
+   }
+  },
+  "bronze_ref.smartpay_paymentmethod": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_paymentmethod; silver is the complete layer — prefer silver.smartpay_paymentmethod.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "name": "Payment method name (reference label; kept by the team document)."
+   }
+  },
+  "bronze_ref.smartpay_permission": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_permission; silver is the complete layer — prefer silver.smartpay_permission.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "name": "Permission name (reference label; kept by the team document)."
+   }
+  },
+  "bronze_ref.smartpay_pos": {
+   "description": "Stale reference-layer copy (layer orphan, claude.md 5i/5j) of silver.smartpay_pos; may be out of date — use silver.smartpay_pos.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "vatMerchantId": "UUID token of the VAT merchant — not a real ID."
+   }
+  },
+  "bronze_ref.smartpay_producttype": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_producttype; silver is the complete layer — prefer silver.smartpay_producttype.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "name": "Product type name (reference label; kept by the team document)."
+   }
+  },
+  "bronze_ref.smartpay_qpayhistory": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_qpayhistory; silver is the complete layer — prefer silver.smartpay_qpayhistory.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)"
+   }
+  },
+  "bronze_ref.smartpay_sbincome": {
+   "description": "Reference-layer (pre-silver) copy of silver.smartpay_sbincome; silver is the complete layer — prefer silver.smartpay_sbincome.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)",
+    "date": "Income date. (Truncated to the hour in silver; the bronze_ref copy is pre-silver.)"
+   }
+  },
+  "silver.smartpay_admin": {
+   "description": "SmartPay admin accounts — only id and timestamps are copied (username, name, contacts and password are excluded); useful only for counts.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_aifunctioncall": {
+   "description": "AI function-call entries (name, description, answer, image) — Support, FAQ & log domain.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "name": "Function name (reference label; kept by the team document)."
+   }
+  },
+  "silver.smartpay_banktransactionlog": {
+   "description": "Log of bank transactions as reported by the bank (Transactions & settlement domain); account numbers, balance and description are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "trnDate": "Bank transaction date. Truncated to the hour.",
+    "journalNo": "Bank transaction journal number (гүйлгээний журнал, per the smartpay team's columns document).",
+    "bankName": "Bank name (flagged as possible identity data in the schema analysis but kept by the team document)."
+   }
+  },
+  "silver.smartpay_card": {
+   "description": "One row per payment card a user linked to SmartPay (masked PAN, expiry, card name and token id are excluded) — answers KPI 51 'users who linked a payment card'.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "userId": "UUID token of the card owner (person) — not a real ID.",
+    "approved": "Card approved flag; KPI 51 counts approved cards from it.",
+    "bankname": "Issuing bank name (flagged as possible identity data in the schema analysis but kept by the team document)."
+   }
+  },
+  "silver.smartpay_faq": {
+   "description": "FAQ entries (question, answered flag, type, aiFunctionCallId) — Support, FAQ & log domain.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_incometransaction": {
+   "description": "Income transactions per merchant with amount and fee (placed in Transactions & settlement by the team document; unassigned in our schema analysis). Account numbers are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant — not a real ID.",
+    "merchantSettleId": "UUID token of the merchant settlement — not a real ID. The raw id it refers to is not tokenised in the lake, so a direct join to that table's id does not work.",
+    "settledAt": "Settlement time. Truncated to the hour.",
+    "bankCode": "Bank code (банкны код, per the smartpay team's columns document).",
+    "journalNo": "Bank transaction journal number (гүйлгээний журнал, per the smartpay team's columns document)."
+   }
+  },
+  "silver.smartpay_invoice": {
+   "description": "One row per SmartPay invoice (Invoices & payment domain): who paid (user token), which merchant, amounts, fee and payment type — answers users / invoices / fee income questions (KPI 35/36 online services and online shop).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "paymentMethodId -> silver.smartpay_paymentmethod.id",
+    "id -> silver.smartpay_invoiceitem.invoiceId"
+   ],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "userId": "UUID token of the paying user (person) — not a real ID.",
+    "merchantId": "UUID token of the merchant (DDL FK to merchant.id) — not a real ID. The raw id it refers to is not tokenised in the lake, so a direct join to that table's id does not work.",
+    "paymentMethodId": "Payment method of the invoice (DDL FK to paymentMethod.id).",
+    "productPaymentType": "Product payment type category. KPI 35/36 split invoices by this into 'online services' vs 'online shop'; which value is which is not yet confirmed by smartpay.",
+    "totalAmount": "Invoice total amount; summed as total_amount in KPI 35.",
+    "feeAmount": "Fee on the invoice; summed as fee income in KPI 35."
+   }
+  },
+  "silver.smartpay_invoiceitem": {
+   "description": "One row per line item of a SmartPay invoice, linking the invoice to its product type, payment transaction and VAT info.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "invoiceId -> silver.smartpay_invoice.id",
+    "productTypeId -> silver.smartpay_producttype.id",
+    "transactionId -> silver.smartpay_transaction.id",
+    "vatInfoId -> silver.smartpay_invoiceitemvatinfo.id"
+   ],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "invoiceId": "Invoice this item belongs to (DDL FK to invoice.id).",
+    "productTypeId": "Product type of the item (DDL FK to productType.id).",
+    "transactionId": "Transaction for the item (DDL FK to transaction.id).",
+    "vatInfoId": "VAT information record of the item (DDL FK to invoiceItemVatInfo.id).",
+    "bankCode": "Bank code (банкны код, per the smartpay team's columns document)."
+   }
+  },
+  "silver.smartpay_invoiceitemvatinfo": {
+   "description": "VAT (e-receipt) information record attached to an invoice item via invoiceItem.vatInfoId; register numbers and QR/request payloads are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "id -> silver.smartpay_invoiceitem.vatInfoId"
+   ],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_log": {
+   "description": "Per-merchant activity log; only id, merchant token and timestamps are copied (description, data and IP are excluded).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant — not a real ID."
+   }
+  },
+  "silver.smartpay_merchant": {
+   "description": "One row per SmartPay merchant with its fee settings (fee %, SmartPay fee %, user fee), bank code and display data; name, register, contacts, account number and API credentials are excluded. Silver holds rows that bronze no longer has.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "userFeeType": "How the user fee is computed (DDL default PERCENT; percent vs fixed). Was wrongly tokenised earlier (claude.md G19), so older silver rows may still hold UUIDs until the in-place migration.",
+    "bankCode": "Bank code (банкны код, per the smartpay team's columns document)."
+   }
+  },
+  "silver.smartpay_merchantbillings": {
+   "description": "Billing fee setting per merchant (bill fee type and amount) — Merchant domain.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant (DDL FK to merchant.id) — not a real ID. The raw id it refers to is not tokenised in the lake, so a direct join to that table's id does not work."
+   }
+  },
+  "silver.smartpay_merchantinvoicecountdetails": {
+   "description": "Count-based detail lines (description, count, rate, total) of an invoice SmartPay issues to a merchant.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantInvoiceId": "UUID token of the merchant invoice (DDL FK to merchantInvoices.id) — not a real ID. The raw id it refers to is not tokenised in the lake, so a direct join to that table's id does not work."
+   }
+  },
+  "silver.smartpay_merchantinvoiceitems": {
+   "description": "Line items (description, quantity, rate, amount) of an invoice SmartPay issues to a merchant.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantInvoiceId": "UUID token of the merchant invoice (DDL FK to merchantInvoices.id) — not a real ID. The raw id it refers to is not tokenised in the lake, so a direct join to that table's id does not work."
+   }
+  },
+  "silver.smartpay_merchantinvoices": {
+   "description": "One row per invoice SmartPay issues TO a merchant (SmartPay → merchant), with amount, VAT, total, paid amount and status — answers what merchants are billed and whether they paid.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant (DDL FK to merchant.id) — not a real ID. The raw id it refers to is not tokenised in the lake, so a direct join to that table's id does not work.",
+    "status": "Merchant invoice status (DDL default CREATED).",
+    "dueDate": "Due date. Truncated to the hour.",
+    "paidDate": "Date paid. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_merchantpermission": {
+   "description": "Merchant–permission rows (merchant token, permissionId) — Merchant domain.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant — not a real ID."
+   }
+  },
+  "silver.smartpay_merchantsettle": {
+   "description": "One row per merchant settlement with amount, count and merchant / sub-merchant / Xpay / processing amounts (Transactions & settlement domain). transaction.merchantSettleId points here (DDL FK), but that column is tokenised in the lake.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant — not a real ID.",
+    "settledAt": "Settlement time. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_negdihistory": {
+   "description": "Negdi payment-gateway history rows per invoice (invoiceId, status, settleId, paymentType) (Invoices & payment domain); the gateway's check/transaction ids are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_negdijoincardhistory": {
+   "description": "Negdi payment-gateway card-join history per user (per the table name) (Invoices & payment domain); gateway ids and the cancel approval code are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "userId": "UUID token of the user (person) — not a real ID."
+   }
+  },
+  "silver.smartpay_paymentmethod": {
+   "description": "Reference list of payment methods used by invoices (invoice.paymentMethodId).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "id -> silver.smartpay_invoice.paymentMethodId"
+   ],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "name": "Payment method name (reference label; kept by the team document)."
+   }
+  },
+  "silver.smartpay_permission": {
+   "description": "Reference list of permissions that can be granted to merchants via merchantPermission.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "name": "Permission name (reference label; kept by the team document)."
+   }
+  },
+  "silver.smartpay_pos": {
+   "description": "POS rows (supplier, mark, status) tied to a VAT merchant — Merchant domain.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "vatMerchantId": "UUID token of the VAT merchant — not a real ID.",
+    "transactionName": "Transaction name (flagged as possible identity data in the schema analysis but kept by the team document)."
+   }
+  },
+  "silver.smartpay_producttype": {
+   "description": "Reference list of product types, referenced by invoice items (invoiceItem.productTypeId).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "id -> silver.smartpay_invoiceitem.productTypeId"
+   ],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "name": "Product type name (reference label; kept by the team document)."
+   }
+  },
+  "silver.smartpay_qpayhistory": {
+   "description": "QPay payment-gateway history rows per invoice (invoiceId, status, checked, qpayType) (Invoices & payment domain); the gateway's internal id and callback URL are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_sbincome": {
+   "description": "SmartPay income totals (total, commission, merchant fee, billing subscriptions) — Fee distribution & income domain.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "date": "Income date. Truncated to the hour."
+   }
+  },
+  "silver.smartpay_sbincomebymerchant": {
+   "description": "SmartPay income totals broken down by merchant (Fee distribution & income domain).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "date": "Income date. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant — not a real ID."
+   }
+  },
+  "silver.smartpay_transaction": {
+   "description": "One row per payment transaction (Transactions & settlement domain) with its amount and the fee split (merchant / SmartPay / Xpay / processing) — answers fee-income questions (KPI 40). Account numbers are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "id -> silver.smartpay_invoiceitem.transactionId"
+   ],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantSettleId": "UUID token of the merchant settlement (DDL FK to merchantSettle.id) — not a real ID. The raw id it refers to is not tokenised in the lake, so a direct join to that table's id does not work.",
+    "invoiceItemId": "Invoice item id (no FK declared on this column; the declared link is invoiceItem.transactionId -> transaction.id).",
+    "settledAt": "Settlement time. Truncated to the hour.",
+    "bankCode": "Bank code (банкны код, per the smartpay team's columns document).",
+    "journalNo": "Bank transaction journal number (гүйлгээний журнал, per the smartpay team's columns document).",
+    "type": "Transaction type. NULL on almost all rows; which value marks a 'bundled' payment (KPI 40) is unconfirmed.",
+    "spayFee": "SmartPay fee on the transaction; summed in KPI 40.",
+    "xpayFee": "Xpay fee on the transaction; summed in KPI 40.",
+    "amount": "Transaction amount; summed in KPI 40."
+   }
+  },
+  "silver.smartpay_transactionbucket": {
+   "description": "Transaction bucket per merchant: a list of transaction ids with total count, amount and fee (Transactions & settlement domain); account numbers are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant — not a real ID.",
+    "bankCode": "Bank code (банкны код, per the smartpay team's columns document)."
+   }
+  },
+  "silver.smartpay_vatlog": {
+   "description": "VAT (e-receipt / И-баримт) log rows per merchant; QR/request payloads and IP are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "merchantId": "UUID token of the merchant — not a real ID."
+   }
+  },
+  "silver.smartpay_vatmerchant": {
+   "description": "VAT (e-receipt / И-баримт) merchant registration with service, tax and fee settings; name, register, TIN and account number are excluded.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Primary key.",
+    "createdAt": "Row creation time (Sequelize timestamps). Truncated to the hour.",
+    "updatedAt": "Row last-update time (Sequelize timestamps); the load watermark. Truncated to the hour.",
+    "createrMerchantId": "UUID token of the merchant that created the VAT merchant record — not a real ID.",
+    "bankCode": "Bank code (банкны код, per the smartpay team's columns document)."
+   }
+  }
+ }
+}

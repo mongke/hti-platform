@@ -1,0 +1,10 @@
+source_system,source_table,target_layer,load_mode,primary_key,watermark_column,columns_allowlist,purpose_ref
+esukh,category,bronze-ref,full,id,,id|name,DEMO-2026-09-29
+esukh,methodtype,bronze-ref,full,id,,id|name,DEMO-2026-09-29
+esukh,method,bronze-ref,full,id,,id|name|isActive|quota|methodTypeId,DEMO-2026-09-29
+esukh,module,bronze-ref,incremental,id,updatedAt,id|name|logo|createdAt|updatedAt|paymentType|basePrice,DEMO-2026-09-29
+esukh,service,bronze-ref,full,id,,id|isDeleted|name|date|hasMeter|stateBankId,DEMO-2026-09-29
+esukh,graphsummary,bronze-ref,full,id,,id|count|amount|label|type|amount2|branchId|month|year,DEMO-2026-09-29
+esukh,branchinvoice,bronze-ref,incremental,id,updatedAt,id|branchId|total|createdAt|updatedAt|status|month|totalCount,DEMO-2026-09-29
+esukh,branch,bronze-ref,incremental,id,updatedAt,id|isActive|province|district|committee|contractDate|endContractDate|expirationDate|chargeCount|bankId|branchPaymentType|isAppActive|hasDiscount|customPrice|defaultPrice|vatType|serviceType|subType|rate|carLimit|hasBilling|createdAt|updatedAt,DEMO-2026-09-29
+esukh,reference,bronze-ref,full,id,,id|root|name|shortname|order|isDeleted|subType|fromCapital|date,DEMO-2026-09-29

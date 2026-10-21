@@ -1,0 +1,462 @@
+{
+ "systems": {
+  "sma": {
+   "description": "sma is the MySQL 8 database (sma_db, 34 tables) behind the 'Смарт Монгол туслах' (Smart Mongol assistant) app - users, cars, property sale/rent listings and offers, subscriptions/billing, AI assistant profiles and app logs; most of the app's KPIs are computed from it. People and cars are UUID tokens; the lake currently reflects a stale dump (newest registration 2025-12-08) until nightly loads start."
+  }
+ },
+ "tables": {
+  "silver.sma_users": {
+   "description": "One row per registered sma app user (source table Users); answers total users (KPI 1), new users per period (KPI 4) and is the denominator for active-user share (KPI 2). Has no status/active column and no DAN-verification column, so 'active' and 'DAN-verified (ДАН-гаар баталгаажсан)' cannot be answered here.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "UUID token of the sma user (Users.id tokenised into the 'userId' namespace, so it matches userId in every other sma table - G18). Not the real user id.",
+    "createdAt": "Registration date of the user (real registration date per kpis.py KPI 4); truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour",
+    "lastLogged": "lastLogged timestamp of the user from the source Users table; passthrough - NOT truncated to the hour, unlike the other timestamps"
+   }
+  },
+  "silver.sma_useractionlogs": {
+   "description": "One row per user action logged in the app (source UserActionLogs); the activity source - 'active user' = has an action log in the period (KPI 2, KPI 3).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "action": "Action recorded in the log entry",
+    "sessionId": "Session identifier of the action (passthrough)",
+    "screen": "App screen the action was logged on",
+    "metaData": "JSON metadata of the action (passthrough)",
+    "createdAt": "Time the action was logged; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_smaerrors": {
+   "description": "One row per app error report (source SmaErrors); answers app error counts and affected users (KPI 46 'Апп алдааны мэдээллийн тоо') and error-free user share (KPI 3). The error text itself is dropped.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18) who hit the error",
+    "createdAt": "Time the error was recorded; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_cars": {
+   "description": "One row per car registered in the sma app (source Cars), loaded without plateNumber; with silver.sma_usercars answers registered cars, owners, average age and makes (KPI 26 'Нийт бүртгэгдсэн автомашин').",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "UUID token of the car (Cars.id tokenised into the 'carId' namespace so it matches silver.sma_usercars.carId - G18). Not the real car id.",
+    "markName": "Car make (reference label; allowed under a CT015 waiver - a car's make is not a person's name)",
+    "modelName": "Car model (reference label; CT015 waiver)",
+    "buildYear": "Build year of the car (KPI 26 average age = current year - buildYear)",
+    "importDate": "Import date of the car; truncated to the hour",
+    "fuelType": "Fuel type",
+    "wheelPosition": "Steering-wheel position",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_usercars": {
+   "description": "Link table: one row per user-car pair (source UserCars, composite key userId+carId); joins users to cars for KPI 26.",
+   "key": "userId, carId",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id",
+    "carId -> silver.sma_cars.id"
+   ],
+   "columns": {
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "carId": "UUID token of the car ('carId' namespace, joins silver.sma_cars.id - G18)",
+    "createdAt": "Time the user-car link was created; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_userlogs": {
+   "description": "One row per user log entry (source UserLogs, FK to Users).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "action": "Action recorded in the log entry",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_userapplogs": {
+   "description": "One row per user app log entry (source UserAppLogs, FK to Users); the app name column is not copied.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour (nullable in the source)"
+   }
+  },
+  "silver.sma_aiinfos": {
+   "description": "One row per AI assistant (AI туслах) profile of a user (source AiInfos); counts users with an AI assistant profile (KPI 32 - 'paid' not answerable, needs the priceInfo product mapping).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "device": "UUID token of the device (tokenised in its own 'device' namespace)",
+    "robotLogo": "Logo of the AI assistant ('robot') profile",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_notifyons": {
+   "description": "One row per user notification setting (source NotifyOns, FK to Users): which notification type/sub-type a user has enabled.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "notifyType": "Notification type",
+    "subType": "Notification sub-type(s) (JSON in the source)",
+    "enabled": "Whether this notification setting is enabled",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_propertysalerents": {
+   "description": "One row per property sale or rent listing (source PropertySaleRents, FK to Users); answers rental/sale listings by town, type and stage (KPI 37 'Үл хөдлөх түрээсийн зарын тоо') - grouped by town, there is no 'complex grade' field.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Listing id",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18) who posted the listing",
+    "type": "Listing type: enum SALE / RENT",
+    "propertyType": "Property type of the listing (free varchar in the source, not an enum)",
+    "propertyId": "Id of the listed property (passthrough)",
+    "price": "Listing price",
+    "startPrice": "Start price",
+    "floor": "Floor",
+    "roomCount": "Room count",
+    "size": "Size",
+    "townId": "Town id (KPI 37 groups listings by it)",
+    "avgPayment": "Average payment",
+    "stage": "Listing stage (indexed with expiresAt as 'active' in the source)",
+    "expiresAt": "Listing expiry time; truncated to the hour",
+    "coordinate": "Coordinate (JSON in the source; passthrough)",
+    "rentCondition": "Rent condition",
+    "auction": "Auction flag (tinyint)",
+    "createdAt": "Time the listing was created (KPI 37 period filter); truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_propertysalerentoffers": {
+   "description": "One row per offer made by a user on a property sale/rent listing (source PropertySaleRentOffers).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Offer id",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18) who made the offer",
+    "offerPrice": "Offered price",
+    "stage": "Offer stage",
+    "approvedDate": "Offer approval date; truncated to the hour",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_propertysalerentofferhistories": {
+   "description": "One row per history event of a property sale/rent offer (source PropertySaleRentOfferHistories, FK to PropertySaleRentOffers).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertySaleRentOfferId -> silver.sma_propertysalerentoffers.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "propertySaleRentOfferId": "Offer this history event belongs to (FK to PropertySaleRentOffers.id)",
+    "action": "Action recorded on the offer",
+    "detail": "Detail of the action",
+    "createdAt": "Time of the history event; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_propertysalerentimages": {
+   "description": "One row per image attached to a property sale/rent listing (source PropertySaleRentImages, FK to PropertySaleRents).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertySaleRentId -> silver.sma_propertysalerents.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "propertySaleRentId": "Listing the image belongs to (FK to PropertySaleRents.id)",
+    "fullUrl": "URL of the image",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_directoffers": {
+   "description": "One row per direct offer (source DirectOffers, FK to Users); the paid direct offers are the direct-offer part of rental brokerage commission income (KPI 38 'Түрээсийн зуучлалын шимтгэлийн орлого'), filtered on paidAt.",
+   "key": "id",
+   "time_column": "paidAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "towns": "Towns of the offer (JSON in the source)",
+    "propertyType": "Property type: enum apartment / garage",
+    "type": "Offer type: enum SALE / RENT",
+    "price": "Price (summed as direct-offer income in KPI 38)",
+    "billStatus": "Bill status",
+    "paidAt": "Payment time (KPI 38 period filter); truncated to the hour",
+    "journalNo": "Journal number",
+    "vatInfo": "VAT info (JSON in the source)",
+    "stage": "Stage",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_auctionsubscriptionbills": {
+   "description": "One row per auction subscription bill for a sale/rent listing (source AuctionSubscriptionBills, FK to PropertySaleRents); paid bills are the auction part of rental brokerage commission income (KPI 38). Which status values mean 'paid' is unconfirmed.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id",
+    "propertySaleRentId -> silver.sma_propertysalerents.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "propertySaleRentId": "Listing the bill is for (FK to PropertySaleRents.id)",
+    "price": "Bill amount",
+    "status": "Bill status (the 'paid' values are not yet confirmed with the sma team)",
+    "days": "Number of days",
+    "methodType": "Payment method type",
+    "vatType": "VAT type",
+    "vatData": "VAT data (JSON in the source)",
+    "createdAt": "Bill creation time (KPI 38 period filter); truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_subscriptionbills": {
+   "description": "One row per subscription bill (source SubscriptionBills). The product behind priceInfoId points outside the sma database, so 'which subscription product' (e.g. paid AI, KPI 32) cannot be answered yet.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "priceInfoId": "Price/product id - points to a priceInfo lookup outside this database (no such table in the dump)",
+    "priceInfoMethodId": "Price-info method id (also outside this database)",
+    "price": "Bill amount",
+    "status": "Bill status",
+    "methodType": "Payment method type",
+    "quota": "Quota",
+    "vatType": "VAT type",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_iotsubscriptions": {
+   "description": "One row per IoT (relay, релей) subscription of a user (source IotSubscriptions); answers activated relay subscriptions and their fee income by creation date (KPI 39). There is no payment-status column.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "userId -> silver.sma_users.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "userId": "UUID token of the sma user (shared 'userId' token namespace, so it joins silver.sma_users.id - G18)",
+    "priceInfoId": "Price/product id - points outside this database",
+    "priceInfoMethodId": "Price-info method id (outside this database)",
+    "price": "Subscription price (KPI 39 income)",
+    "startDate": "Subscription start; truncated to the hour",
+    "endDate": "Subscription end; truncated to the hour",
+    "quota": "Quota",
+    "vatInfo": "VAT info (JSON in the source)",
+    "createdAt": "Subscription creation time (KPI 39 period filter); truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_dealactions": {
+   "description": "One row per action on a deal (source DealActions, FK to Deals, Agents and Users; Deals/Agents are not loaded).",
+   "key": "id",
+   "time_column": "at",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "dealId": "Deal the action belongs to (FK to Deals.id; Deals is not in the lake)",
+    "agentId": "UUID token of the agent (Agents table, not loaded; own 'agentId' token namespace)",
+    "actorUserId": "UUID token of the acting user (FK to Users.id in the source, but tokenised in its own 'actorUserId' namespace, so it does NOT match silver.sma_users.id tokens)",
+    "action": "Action taken on the deal",
+    "at": "Time of the action; truncated to the hour",
+    "payload": "Action payload (JSON in the source)",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_statisticresults": {
+   "description": "One row per computed result of a statistic (source StatisticResults, FK to Statistics; Statistics is not loaded) - analytics domain.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "statisticId": "Statistic this result belongs to (FK to Statistics.id; not in the lake)",
+    "result": "Result (JSON in the source)",
+    "calculationTime": "Calculation time (int)",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "silver.sma_adminlogins": {
+   "description": "Source table AdminLogins (Users & identity domain); only id and timestamps are held - admin name and phone are never copied.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "createdAt": "Row creation time in the source; truncated to the hour",
+    "updatedAt": "Row last-update time in the source; truncated to the hour"
+   }
+  },
+  "bronze_ref.sma_iotsubscriptions": {
+   "description": "One row per IoT (relay, релей) subscription of a user (source IotSubscriptions); answers activated relay subscriptions and their fee income by creation date (KPI 39). There is no payment-status column. Stale duplicate left in bronze_ref by an earlier layer-routing change (claude.md 5i/5j); the control table now targets bronze, so use silver.sma_iotsubscriptions instead. userId here is the raw source Users.id (integer), not a token.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "priceInfoId": "Price/product id - points outside this database",
+    "priceInfoMethodId": "Price-info method id (outside this database)",
+    "price": "Subscription price (KPI 39 income)",
+    "startDate": "Subscription start",
+    "endDate": "Subscription end",
+    "quota": "Quota",
+    "vatInfo": "VAT info (JSON in the source)",
+    "createdAt": "Subscription creation time (KPI 39 period filter)",
+    "updatedAt": "Row last-update time in the source",
+    "userId": "Raw source user id (Users.id), not tokenised"
+   }
+  },
+  "bronze_ref.sma_notifyons": {
+   "description": "One row per user notification setting (source NotifyOns, FK to Users): which notification type/sub-type a user has enabled. Stale duplicate left in bronze_ref by an earlier layer-routing change (claude.md 5i/5j); the control table now targets bronze, so use silver.sma_notifyons instead. userId here is the raw source Users.id (integer), not a token.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "notifyType": "Notification type",
+    "subType": "Notification sub-type(s) (JSON in the source)",
+    "enabled": "Whether this notification setting is enabled",
+    "createdAt": "Row creation time in the source",
+    "updatedAt": "Row last-update time in the source",
+    "userId": "Raw source user id (Users.id), not tokenised"
+   }
+  },
+  "bronze_ref.sma_subscriptionbills": {
+   "description": "One row per subscription bill (source SubscriptionBills). The product behind priceInfoId points outside the sma database, so 'which subscription product' (e.g. paid AI, KPI 32) cannot be answered yet. Stale duplicate left in bronze_ref by an earlier layer-routing change (claude.md 5i/5j); the control table now targets bronze, so use silver.sma_subscriptionbills instead. userId here is the raw source Users.id (integer), not a token.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "priceInfoId": "Price/product id - points to a priceInfo lookup outside this database (no such table in the dump)",
+    "priceInfoMethodId": "Price-info method id (also outside this database)",
+    "price": "Bill amount",
+    "status": "Bill status",
+    "methodType": "Payment method type",
+    "quota": "Quota",
+    "vatType": "VAT type",
+    "createdAt": "Row creation time in the source",
+    "updatedAt": "Row last-update time in the source",
+    "userId": "Raw source user id (Users.id), not tokenised"
+   }
+  },
+  "bronze_ref.sma_adminlogins": {
+   "description": "Source table AdminLogins (Users & identity domain); only id and timestamps are held - admin name and phone are never copied. Reference-layer (bronze_ref) copy per the control table; timestamps are not banded here.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "createdAt": "Row creation time in the source",
+    "updatedAt": "Row last-update time in the source"
+   }
+  },
+  "bronze_ref.sma_propertysalerentimages": {
+   "description": "One row per image attached to a property sale/rent listing (source PropertySaleRentImages, FK to PropertySaleRents). Reference-layer (bronze_ref) copy per the control table; timestamps are not banded here.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertySaleRentId -> silver.sma_propertysalerents.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "propertySaleRentId": "Listing the image belongs to (FK to PropertySaleRents.id)",
+    "fullUrl": "URL of the image",
+    "createdAt": "Row creation time in the source",
+    "updatedAt": "Row last-update time in the source"
+   }
+  },
+  "bronze_ref.sma_propertysalerentofferhistories": {
+   "description": "One row per history event of a property sale/rent offer (source PropertySaleRentOfferHistories, FK to PropertySaleRentOffers). Reference-layer (bronze_ref) copy per the control table; timestamps are not banded here.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertySaleRentOfferId -> bronze_ref.sma_propertysalerentoffers.id"
+   ],
+   "columns": {
+    "id": "Surrogate row key",
+    "propertySaleRentOfferId": "Offer this history event belongs to (FK to PropertySaleRentOffers.id)",
+    "action": "Action recorded on the offer",
+    "detail": "Detail of the action",
+    "createdAt": "Time of the history event",
+    "updatedAt": "Row last-update time in the source"
+   }
+  },
+  "bronze_ref.sma_statisticresults": {
+   "description": "One row per computed result of a statistic (source StatisticResults, FK to Statistics; Statistics is not loaded) - analytics domain. Reference-layer (bronze_ref) copy per the control table; timestamps are not banded here.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [],
+   "columns": {
+    "id": "Surrogate row key",
+    "statisticId": "Statistic this result belongs to (FK to Statistics.id; not in the lake)",
+    "result": "Result (JSON in the source)",
+    "calculationTime": "Calculation time (int)",
+    "createdAt": "Row creation time in the source",
+    "updatedAt": "Row last-update time in the source"
+   }
+  }
+ }
+}

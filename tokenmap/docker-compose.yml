@@ -1,0 +1,44 @@
+# =============================================================================
+# hti-platform/tokenmap/docker-compose.yml                            NEW FILE
+#
+# N4 token map - a SEPARATE compose project and a SEPARATE Postgres instance
+# from metastore-db, as section 2 requires. Different credentials, different
+# lifecycle, different blast radius: metastore-db holds no data, this holds the
+# only reversible link between a token and a real person.
+#
+# NO PUBLISHED PORT. Reachable only from the platform network, so the tokenise
+# job can connect and nothing on the host can. Do not add a ports: entry.
+#
+# Password lives in tokenmap/.env (chmod 600). The vault decision (Vault vs
+# sops/age) is still open - section 9 - so this is deliberately the same
+# interim arrangement as the metastore, and should move with it.
+# =============================================================================
+
+name: hti-tokenmap
+
+services:
+  token-db:
+    image: postgres:16-alpine
+    container_name: hti-token-db
+    environment:
+      POSTGRES_DB: tokenmap
+      POSTGRES_USER: tokenadmin
+      POSTGRES_PASSWORD: ${TOKENMAP_ADMIN_PASSWORD}
+    volumes:
+      - token-data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    networks: [platform]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tokenadmin -d tokenmap"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+networks:
+  platform:
+    name: hti-platform_platform
+    external: true
+
+volumes:
+  token-data:

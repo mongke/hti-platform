@@ -1,0 +1,8 @@
+source_system,source_table,column,exclusion_reason
+parkly,camera,pass,"Credential stored in plaintext (device/router password or API signature). Filtered out 2026-10-14 after values were found in silver; no analytical use. See docs/CREDENTIALS_IN_SILVER_2026-10-14.md"
+parkly,camera,addSignature,"Credential stored in plaintext (device/router password or API signature). Filtered out 2026-10-14 after values were found in silver; no analytical use. See docs/CREDENTIALS_IN_SILVER_2026-10-14.md"
+parkly,camera,deleteSignature,"Credential stored in plaintext (device/router password or API signature). Filtered out 2026-10-14 after values were found in silver; no analytical use. See docs/CREDENTIALS_IN_SILVER_2026-10-14.md"
+parkly,camera,selectSignature,"Credential stored in plaintext (device/router password or API signature). Filtered out 2026-10-14 after values were found in silver; no analytical use. See docs/CREDENTIALS_IN_SILVER_2026-10-14.md"
+parkly,camera,getRecordSignature,"Credential stored in plaintext (device/router password or API signature). Filtered out 2026-10-14 after values were found in silver; no analytical use. See docs/CREDENTIALS_IN_SILVER_2026-10-14.md"
+parkly,routerConfig,routerPass,"Credential stored in plaintext (device/router password or API signature). Filtered out 2026-10-14 after values were found in silver; no analytical use. See docs/CREDENTIALS_IN_SILVER_2026-10-14.md"
+parkly,routerConfig,anydeskPass,"Credential stored in plaintext (device/router password or API signature). Filtered out 2026-10-14 after values were found in silver; no analytical use. See docs/CREDENTIALS_IN_SILVER_2026-10-14.md"

@@ -1,0 +1,6 @@
+source_system,source_table,exclusion_reason
+smartpay,passwordResetToken,"credential store (matched ['passwordreset', 'token']) - exists to hold secrets; no analytical value, never copied"
+smartpay,ticket,"correspondence table (policy 4.1.4), matched ['ticket']"
+smartpay,ticketComment,"correspondence table (policy 4.1.4), matched ['comment', 'ticket']"
+smartpay,token,"credential store (matched ['token']) - exists to hold secrets; no analytical value, never copied"
+smartpay,userPin,"credential store (matched ['userpin']) - exists to hold secrets; no analytical value, never copied"
