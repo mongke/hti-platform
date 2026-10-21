@@ -257,5 +257,12 @@
   "_load_date": "platform metadata",
   "_source": "platform metadata",
   "_tokenised_at": "platform metadata"
+ },
+ "esukh_propertyownerhistory": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
  }
 }

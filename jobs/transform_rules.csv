@@ -2240,3 +2240,4 @@ esukh,userfeedback,status,passthrough,Organisation/config identifier or business
 esukh,userfeedback,closedAt,time_band,Exact timestamp is a quasi-identifier - truncated to the hour,Platform owner 2026-10-21 - PENDING data-officer confirmation,
 esukh,userfeedback,closedByType,passthrough,Organisation/config identifier or business value - not identifying,Platform owner 2026-10-21 - PENDING data-officer confirmation,
 esukh,userfeedback,branchHelpId,passthrough,Business value with no identifying content,Platform owner 2026-10-21 - PENDING data-officer confirmation,
+esukh,blacklistproperty,isAllBlocked,passthrough,"Restriction scope flag: 1 = all rights blocked, 0 = selected services blocked (KPI 42/43)",Platform owner 2026-10-22 - PENDING data-officer confirmation,

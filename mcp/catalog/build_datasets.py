@@ -37,6 +37,7 @@ DATASETS = [
     "esukh_property", "esukh_userproperty", "esukh_group", "esukh_userbarrier",
     "parkly_carconfig", "parkly_inrecord", "parkly_payments", "parkly_group",
     "esukh_userfeedback",   # KPI 44, 45 (metadata only)
+    "esukh_propertyownerhistory",   # KPI 21
 ]
 K_MIN = 5  # small-cell suppression threshold, enforced by the server
 UNIT_DATASETS = {"myproperty_room", "myproperty_building", "parkly_park", "parkly_parkaccessconfig",

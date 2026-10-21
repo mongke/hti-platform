@@ -2009,6 +2009,44 @@
      "description": "UUID token of the user (count only)"
     }
    }
+  },
+  "esukh_propertyownerhistory": {
+   "system": "esukh",
+   "person_fields": [
+    "propertyId"
+   ],
+   "description": "Owner-change history of properties: currentUserId and prevUserId reference user and workerId references worker (declared FKs).",
+   "fields": {
+    "propertyId": {
+     "type": "int",
+     "role": "count_distinct"
+    },
+    "createdAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "updatedAt": {
+     "type": "timestamp",
+     "role": "date",
+     "description": "Truncated to the hour."
+    },
+    "currentUserId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the current owner user."
+    },
+    "prevUserId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the previous owner user."
+    },
+    "workerId": {
+     "type": "string",
+     "role": "count_distinct",
+     "description": "UUID token of the worker."
+    }
+   }
   }
  }
 }

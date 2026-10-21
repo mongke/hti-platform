@@ -10,7 +10,7 @@ esukh,balancegraph,bronze-ref,full,id,,id|branchId|regDate|date|townId,PENDING-R
 esukh,balancehistory,bronze-ref,full,id,,id|rootBalanceId|balanceId|amount,PENDING-REVIEW-2026-10
 esukh,barrier,bronze-ref,full,id,,id|branchId|type|barrierName|isActive|interval|apartmentId|subType,PENDING-REVIEW-2026-10
 esukh,billinglog,bronze-ref,incremental,id,updatedAt,id|partnerId|partnerName|action|createdAt|updatedAt,PENDING-REVIEW-2026-10
-esukh,blacklistproperty,bronze,incremental,id,updatedAt,id|propertyId|branchId|workerId|blackListPropertyHistoryId|createdAt|updatedAt,PENDING-REVIEW-2026-10
+esukh,blacklistproperty,bronze,incremental,id,updatedAt,id|propertyId|branchId|workerId|blackListPropertyHistoryId|createdAt|updatedAt|isAllBlocked,PENDING-REVIEW-2026-10
 esukh,blacklistpropertyhistory,bronze,incremental,id,updatedAt,id|propertyId|branchId|regWorkerId|createdAt|updatedAt,PENDING-REVIEW-2026-10
 esukh,branch,bronze,incremental,id,updatedAt,id|isActive|name|latinName|province|district|committee|contractDate|endContractDate|expirationDate|chargeCount|bankId|customPrice|defaultPrice|hasDiscount|vatType|vatDistrictCode|branchPaymentType|showPaymentGraph|isAppActive|canUserAddNews|color1|color2|color3|serviceType|subType|workerId|payOffPercent|payOffStartDay|autoApproveDay|canSkipPay|messageLimit|approvationDate|appCarTypes|akrel|khanBeginDate|rate|carLimit|subsOnlyTransaction|canUserDeleteCar|hasBilling|useBasePrice|approveAble|messageMultiply|createdAt|updatedAt,PENDING-REVIEW-2026-10
 esukh,branchbalance,bronze,full,id,,id|branchId|workerId|prevBalance|cost|pay|paymentBalance|regDate|branchInvoiceId,PENDING-REVIEW-2026-10

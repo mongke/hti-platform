@@ -234,10 +234,13 @@
   {
    "id": 21,
    "title": "Өмчлөгч өөрчлөгдсөн тохиолдлын тоо",
-   "status": "unavailable",
+   "status": "available",
    "definition_mn": "Өмчлөгч өөрчлөгдсөн тохиолдлын тоо, өдрөөр / 7 хоногоор / сараар",
    "definition_en": "Number of ownership changes, by day / week / month.",
-   "missing_data": "myproperty.ownerHistory.createdAt"
+   "datasets": [
+    "esukh_propertyownerhistory"
+   ],
+   "caveat": "esukh.propertyOwnerHistory: one row per owner change of a property (previous -> current owner), since 2025-07. The free-text actionText is not loaded."
   },
   {
    "id": 22,

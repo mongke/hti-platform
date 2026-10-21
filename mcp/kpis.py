@@ -145,7 +145,13 @@ KPIS: list[dict] = [
       needs="myproperty.rentalAgreement holds only 2 agreements (2026-10-21) - too few for any pattern; "
             "the source must record rental agreements before this KPI means anything",
       note="Was 'available' until 2026-10-21 and returned averages over n=2."),
- dict(id=21, title="Өмчлөгч өөрчлөгдсөн тохиолдлын тоо", status="unavailable", needs="myproperty.ownerHistory.createdAt (timestamp not allowlisted)"),
+ dict(id=21, title="Өмчлөгч өөрчлөгдсөн тохиолдлын тоо", status="available",
+      sql="""SELECT {grain_createdAt} AS period, COUNT(*) AS ownership_changes, COUNT(DISTINCT propertyId) AS properties
+             FROM silver.esukh_propertyownerhistory
+             WHERE createdAt >= '{start}' AND createdAt < '{end}'
+             GROUP BY 1 ORDER BY 1""",
+      note="esukh.propertyOwnerHistory: one row per owner change of a property (previous -> current owner), since 2025-07. "
+           "The free-text actionText is not loaded."),
  dict(id=22, title="Шинэ өмчлөгчийн загвар", status="unavailable", needs="ownerHistory timestamps + room link"),
  dict(id=23, title="Хуучин өмчлөгчийн загвар", status="unavailable", needs="ownerHistory timestamps"),
  dict(id=24, title="Түр нэвтрэх зөвшөөрөлтэй / нэвтэрсэн хэрэглэгч", status="unavailable", needs="parkly guest/visitor access tables (not in the 27 'Normal' tables)"),
