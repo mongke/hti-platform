@@ -1,0 +1,107 @@
+# =============================================================================
+# hti-platform/airflow/docker-compose.yml                             NEW FILE
+#
+# N8: orchestration. A SEPARATE compose project from the platform so Airflow can
+# be restarted, upgraded or torn down without touching the lake, the metastore
+# or the thrift server.
+#
+# HOW IT RUNS JOBS: `docker compose --profile jobs run --rm spark-jobs ...`
+# against the platform's own compose file, which is bind-mounted read-only. The
+# mounts, entrypoint, Delta/Spark config and credentials therefore stay defined
+# in exactly one place (../docker-compose.yml). Duplicating them into the DAG
+# would guarantee drift the first time either changed.
+#
+# That requires two things the official image lacks:
+#   - the compose v2 plugin -> mounted from the host, read-only
+#   - access to the Docker socket -> mounted, with group_add for its GID
+#
+# SECURITY, READ THIS. Access to /var/run/docker.sock is equivalent to root on
+# this host: anything that can talk to it can start a privileged container and
+# read any file, including /lake/bronze. Accepted here because Airflow, the lake
+# and the jobs are one single-node system with one operator, and because the
+# webserver is bound to 127.0.0.1. It would NOT be acceptable if Airflow were
+# shared with other teams or reachable from the network. The alternative is a
+# dedicated runner that Airflow talks to over a narrow API - revisit that at
+# N10, or when this moves off one box.
+# =============================================================================
+
+name: hti-airflow
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.10.5
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_DB_PASSWORD}@airflow-db:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"   # nothing runs until you unpause it
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
+    AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: "false"      # never backfill PII loads
+    PLATFORM_DIR: /home/developer/hti-platform
+    # Needed by airflow-init's `users create`. Without these it prompts for a
+    # password on stdin and dies with EOFError - which is how the first run failed.
+    AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD}
+    AIRFLOW_ADMIN_EMAIL: ${AIRFLOW_ADMIN_EMAIL:-admin@example.invalid}
+  volumes:
+    - ./dags:/opt/airflow/dags:ro
+    - ./logs:/opt/airflow/logs
+    # Mounted at the SAME path as on the host, deliberately. docker compose
+    # resolves relative bind mounts (./conf/...) against the project directory
+    # as IT sees it, but the Docker daemon resolves those source paths on the
+    # HOST. Mount this at /platform and the daemon looks for /platform/conf/...,
+    # finds nothing, and creates empty DIRECTORIES there - so the container dies
+    # with `"/opt/spark-entrypoint.sh": is a directory` (G2 by a new route).
+    # Identical paths on both sides make the relative mounts resolve correctly.
+    - ..:/home/developer/hti-platform:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /usr/libexec/docker/cli-plugins/docker-compose:/home/airflow/.docker/cli-plugins/docker-compose:ro
+  group_add:
+    - "${DOCKER_GID:-112}"                                # GID of /var/run/docker.sock
+  depends_on:
+    airflow-db:
+      condition: service_healthy
+
+services:
+
+  # Airflow's own metadata database. Deliberately NOT metastore-db: that is the
+  # Hive catalog and has a different lifecycle, backup posture and blast radius.
+  airflow-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD}
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create --username admin --firstname HTI --lastname Platform \
+          --role Admin --email "$${AIRFLOW_ADMIN_EMAIL:-admin@example.invalid}" \
+          --password "$${AIRFLOW_ADMIN_PASSWORD}" || true
+    restart: "no"
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: unless-stopped
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "127.0.0.1:8080:8080"     # loopback only; tunnel over SSH. Never 0.0.0.0.
+    restart: unless-stopped
+
+volumes:
+  airflow-db-data:

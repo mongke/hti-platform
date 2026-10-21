@@ -1,0 +1,2 @@
+source_system,source_table,exclusion_reason
+esukh,counter,"Team document 2026-10-08 allows only `jsondata` (opaque JSON) and omits the primary key `id`; CT011 fires and the JSON content is unknown. Fail closed until the esukh team states what jsondata holds and whether id may be copied."

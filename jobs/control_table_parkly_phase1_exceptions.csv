@@ -1,0 +1,2 @@
+source_system,source_table,column,rule,justification,approved_by
+parkly,group,name,CT015,"Label of a parking access group (Оршин суугч, Зочин, Ажилтан ...), 17 rows - not a person's name. Needed for KPI 29 (permanent vs guest access).",Platform owner 2026-10-21 - PENDING data-officer confirmation

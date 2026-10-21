@@ -1,0 +1,7 @@
+source_system,source_table,target_layer,load_mode,primary_key,watermark_column,columns_allowlist,purpose_ref
+smartpay,paymentMethod,bronze-ref,incremental,id,updatedAt,id|createdAt|updatedAt,DEMO-SMARTPAY-2026-09-30
+smartpay,productType,bronze-ref,incremental,id,updatedAt,id|paymentType|createdAt|updatedAt|settleType,DEMO-SMARTPAY-2026-09-30
+smartpay,permission,bronze-ref,incremental,id,updatedAt,id|type|createdAt|updatedAt,DEMO-SMARTPAY-2026-09-30
+smartpay,merchantPermission,bronze-ref,incremental,id,updatedAt,id|merchantId|permissionId|createdAt|updatedAt,DEMO-SMARTPAY-2026-09-30
+smartpay,pos,bronze-ref,incremental,id,updatedAt,id|supplier|mark|status|createdAt|updatedAt|vatMerchantId,DEMO-SMARTPAY-2026-09-30
+smartpay,sbIncome,bronze-ref,incremental,id,updatedAt,id|date|total|commission|merchantFee|billingSubs|createdAt|updatedAt,DEMO-SMARTPAY-2026-09-30

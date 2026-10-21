@@ -1,0 +1,1769 @@
+esukh — data copy review
+HTI analytics platform · prepared 30 September 2026 · for data-officer review
+This document records which tables and columns the analytics platform proposes to copy from esukh, and which it refuses. Filtering works by omission: a column that is not listed is never copied. Nothing here is approved until a purpose reference is assigned to every row and the control table is signed.
+1. Summary
+Source system
+| esukh
+| Database
+| esukh
+| Engine
+| MySQL 8
+| Tables in the database
+| 241
+| Tables proposed for copying
+| 166
+| Tables excluded
+| 76
+| Accounted for
+| 242 of 241
+| Currently loaded into the lake
+| 9 (review subset only)
+| Rows with a purpose reference
+| 0 of 166
+| Validator verdict
+| REJECTED — 166 × CT013 (no purpose assigned)
+|
+2. Outstanding decisions
+—  Assign a purpose reference to all 166 rows. Currently 0 are set, so the platform refuses to load anything from this system.
+—  Confirm the target layer per table. Every row is set to bronze, which is deleted within 24 hours. Promotion to bronze-ref, retained longer, suits only tables with no personal data — including none reachable through a foreign key.
+—  2 column(s) must be banded or grouped before reaching gold (birth date to age band, latitude/longitude to location group). Confirm that transform exists.
+—  Review section 5. The filter deliberately over-detects, so a harmless label such as a service-category name is blocked alongside a genuine person name. Each false positive is cleared in the exceptions file with a written justification and an approver name.
+3. Tables proposed for copying (166)
+#
+| Source table
+| Layer
+| Load mode
+| Primary key
+| Watermark
+| Cols
+| 1
+| action
+| bronze
+| full
+| id
+| -
+| 4
+| 2
+| adminaccount
+| bronze
+| incremental
+| id
+| updatedAt
+| 7
+| 3
+| adminaction
+| bronze
+| full
+| id
+| -
+| 3
+| 4
+| adminbranchentry
+| bronze
+| incremental
+| id
+| updatedAt
+| 11
+| 5
+| aiinfo
+| bronze
+| full
+| id
+| -
+| 6
+| 6
+| allowlistproperty
+| bronze
+| incremental
+| id
+| updatedAt
+| 10
+| 7
+| allowlistpropertyhistory
+| bronze
+| incremental
+| id
+| updatedAt
+| 12
+| 8
+| apartment
+| bronze
+| full
+| id
+| -
+| 20
+| 9
+| apartmentmodule
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 10
+| apartmentpaymentgroup
+| bronze
+| full
+| id
+| -
+| 4
+| 11
+| balance
+| bronze
+| full
+| id
+| -
+| 26
+| 12
+| balancegraph
+| bronze
+| full
+| id
+| -
+| 7
+| 13
+| balancehistory
+| bronze
+| full
+| id
+| -
+| 4
+| 14
+| barrier
+| bronze
+| full
+| id
+| -
+| 12
+| 15
+| billinglog
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 16
+| blacklistproperty
+| bronze
+| incremental
+| id
+| updatedAt
+| 9
+| 17
+| blacklistpropertyhistory
+| bronze
+| incremental
+| id
+| updatedAt
+| 11
+| 18
+| branch
+| bronze
+| incremental
+| id
+| updatedAt
+| 58
+| 19
+| branchbalance
+| bronze
+| full
+| id
+| -
+| 10
+| 20
+| branchcharge
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 21
+| branchextracharge
+| bronze
+| full
+| id
+| -
+| 8
+| 22
+| branchinfo
+| bronze
+| full
+| id
+| -
+| 11
+| 23
+| branchinfofile
+| bronze
+| full
+| id
+| -
+| 2
+| 24
+| branchinfoimage
+| bronze
+| full
+| id
+| -
+| 2
+| 25
+| branchinfowhom
+| bronze
+| full
+| id
+| -
+| 3
+| 26
+| branchinvoice
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 27
+| branchinvoicepayment
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 28
+| branchinvoicepaymentdetail
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 29
+| branchinvoicesummarylog
+| bronze
+| incremental
+| id
+| updatedAt
+| 7
+| 30
+| branchpaymentdetail
+| bronze
+| full
+| id
+| -
+| 11
+| 31
+| branchpaymentsummary
+| bronze
+| incremental
+| id
+| updatedAt
+| 11
+| 32
+| branchstatedifference
+| bronze
+| incremental
+| id
+| updatedAt
+| 9
+| 33
+| burtelog
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 34
+| camera
+| bronze
+| full
+| id
+| -
+| 21
+| 35
+| capital
+| bronze
+| full
+| id
+| -
+| 21
+| 36
+| capitalfiles
+| bronze
+| full
+| id
+| -
+| 3
+| 37
+| capitalimages
+| bronze
+| full
+| id
+| -
+| 3
+| 38
+| capitalrepairs
+| bronze
+| full
+| id
+| -
+| 5
+| 39
+| capitalworker
+| bronze
+| full
+| id
+| -
+| 3
+| 40
+| car
+| bronze
+| full
+| id
+| -
+| 17
+| 41
+| category
+| bronze
+| full
+| id
+| -
+| 1
+| 42
+| chip
+| bronze
+| full
+| id
+| -
+| 8
+| 43
+| chipbarrier
+| bronze
+| full
+| id
+| -
+| 6
+| 44
+| company
+| bronze
+| full
+| id
+| -
+| 11
+| 45
+| companybranch
+| bronze
+| full
+| id
+| -
+| 10
+| 46
+| companycapital
+| bronze
+| full
+| id
+| -
+| 5
+| 47
+| companyrating
+| bronze
+| incremental
+| id
+| updatedAt
+| 7
+| 48
+| conciergeitem
+| bronze
+| full
+| id
+| -
+| 7
+| 49
+| conciergemenu
+| bronze
+| full
+| id
+| -
+| 3
+| 50
+| contract
+| bronze
+| full
+| id
+| -
+| 7
+| 51
+| cost
+| bronze
+| full
+| id
+| -
+| 12
+| 52
+| counter
+| bronze
+| full
+| id
+| -
+| 2
+| 53
+| coupon
+| bronze
+| incremental
+| id
+| updatedAt
+| 10
+| 54
+| couponbranch
+| bronze
+| full
+| id
+| -
+| 3
+| 55
+| couponcreater
+| bronze
+| incremental
+| id
+| updatedAt
+| 4
+| 56
+| coupondiscount
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 57
+| defaultaction
+| bronze
+| full
+| id
+| -
+| 3
+| 58
+| electricpayed
+| bronze
+| incremental
+| id
+| updatedAt
+| 11
+| 59
+| electricuser
+| bronze
+| full
+| id
+| -
+| 4
+| 60
+| errorvat
+| bronze
+| full
+| id
+| -
+| 3
+| 61
+| files
+| bronze
+| full
+| id
+| -
+| 1
+| 62
+| graphsummary
+| bronze
+| full
+| id
+| -
+| 9
+| 63
+| group
+| bronze
+| incremental
+| id
+| updatedAt
+| 9
+| 64
+| groupapartment
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 65
+| groupbranch
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 66
+| groupjoinrequest
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 67
+| grouptown
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 68
+| groupuser
+| bronze
+| incremental
+| id
+| updatedAt
+| 7
+| 69
+| images
+| bronze
+| full
+| id
+| -
+| 2
+| 70
+| importantfiles
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 71
+| incomebytypes
+| bronze
+| full
+| id
+| -
+| 11
+| 72
+| incomepivot
+| bronze
+| full
+| id
+| -
+| 8
+| 73
+| information
+| bronze
+| full
+| id
+| -
+| 12
+| 74
+| infowhom
+| bronze
+| full
+| id
+| -
+| 4
+| 75
+| inouthistory
+| bronze
+| full
+| id
+| -
+| 15
+| 76
+| invoice
+| bronze
+| incremental
+| id
+| updatedAt
+| 9
+| 77
+| invoicebucket
+| bronze
+| incremental
+| id
+| updatedAt
+| 4
+| 78
+| khanpaylog
+| bronze
+| full
+| id
+| -
+| 14
+| 79
+| liftfloor
+| bronze
+| full
+| id
+| -
+| 3
+| 80
+| like
+| bronze
+| full
+| id
+| -
+| 4
+| 81
+| log
+| bronze
+| full
+| id
+| -
+| 8
+| 82
+| mainconfig
+| bronze
+| full
+| id
+| -
+| 10
+| 83
+| mainconfighistory
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 84
+| meter
+| bronze
+| full
+| id
+| -
+| 12
+| 85
+| meterhistory
+| bronze
+| incremental
+| id
+| updatedDate
+| 8
+| 86
+| meterinfo
+| bronze
+| incremental
+| id
+| updatedDate
+| 5
+| 87
+| method
+| bronze
+| full
+| id
+| -
+| 4
+| 88
+| methodtype
+| bronze
+| full
+| id
+| -
+| 1
+| 89
+| module
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 90
+| monthlyconfig
+| bronze
+| full
+| id
+| -
+| 9
+| 91
+| monthlypayment
+| bronze
+| full
+| id
+| -
+| 18
+| 92
+| monthlypaymentapproved
+| bronze
+| full
+| id
+| -
+| 18
+| 93
+| monthremain
+| bronze
+| full
+| id
+| -
+| 15
+| 94
+| nearbyservice
+| bronze
+| full
+| id
+| -
+| 5
+| 95
+| negdicard
+| bronze
+| full
+| id
+| -
+| 7
+| 96
+| negdihistory
+| bronze
+| incremental
+| id
+| updatedAt
+| 16
+| 97
+| overpaidbalance
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 98
+| overpayment
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 99
+| paymentapprove
+| bronze
+| full
+| id
+| -
+| 16
+| 100
+| paymentapprovejob
+| bronze
+| full
+| id
+| -
+| 18
+| 101
+| paymentgroup
+| bronze
+| full
+| id
+| -
+| 7
+| 102
+| paymentpartner
+| bronze
+| full
+| id
+| -
+| 7
+| 103
+| paymenttypereport
+| bronze
+| full
+| id
+| -
+| 12
+| 104
+| performance
+| bronze
+| full
+| id
+| -
+| 8
+| 105
+| phone
+| bronze
+| full
+| id
+| -
+| 3
+| 106
+| position
+| bronze
+| full
+| id
+| -
+| 1
+| 107
+| pricecheckrequest
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 108
+| priceinfo
+| bronze
+| full
+| id
+| -
+| 4
+| 109
+| priceinfomethod
+| bronze
+| full
+| id
+| -
+| 5
+| 110
+| probill
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 111
+| process
+| bronze
+| full
+| id
+| -
+| 5
+| 112
+| profession
+| bronze
+| full
+| id
+| -
+| 1
+| 113
+| property
+| bronze
+| full
+| id
+| -
+| 33
+| 114
+| propertycaraccess
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 115
+| propertycaraccesshistory
+| bronze
+| incremental
+| id
+| updatedAt
+| 7
+| 116
+| propertyconfig
+| bronze
+| full
+| id
+| -
+| 15
+| 117
+| propertydept
+| bronze
+| full
+| id
+| -
+| 13
+| 118
+| propertyjoinrequest
+| bronze
+| incremental
+| id
+| updatedAt
+| 11
+| 119
+| propertyownerhistory
+| bronze
+| incremental
+| id
+| updatedAt
+| 7
+| 120
+| propertyprivateconfig
+| bronze
+| incremental
+| id
+| updatedAt
+| 10
+| 121
+| qpayhistory
+| bronze
+| incremental
+| id
+| updatedAt
+| 13
+| 122
+| ratebranchinfo
+| bronze
+| full
+| id
+| -
+| 5
+| 123
+| ratecompany
+| bronze
+| full
+| id
+| -
+| 5
+| 124
+| rateworker
+| bronze
+| full
+| id
+| -
+| 7
+| 125
+| ratingcriteria
+| bronze
+| incremental
+| id
+| updatedAt
+| 6
+| 126
+| reference
+| bronze
+| full
+| id
+| -
+| 8
+| 127
+| rent
+| bronze
+| full
+| id
+| -
+| 5
+| 128
+| reverselog
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 129
+| room
+| bronze
+| full
+| id
+| -
+| 9
+| 130
+| roomimage
+| bronze
+| full
+| id
+| -
+| 3
+| 131
+| roomorder
+| bronze
+| full
+| id
+| -
+| 20
+| 132
+| salesprocess
+| bronze
+| full
+| id
+| -
+| 5
+| 133
+| service
+| bronze
+| full
+| id
+| -
+| 5
+| 134
+| signuplog
+| bronze
+| full
+| id
+| -
+| 2
+| 135
+| statebalancedifference
+| bronze
+| full
+| id
+| -
+| 8
+| 136
+| statebankstatement
+| bronze
+| incremental
+| id
+| updatedAt
+| 18
+| 137
+| statepayment
+| bronze
+| full
+| id
+| -
+| 9
+| 138
+| staterawtransaction
+| bronze
+| full
+| id
+| -
+| 4
+| 139
+| statesuberrors
+| bronze
+| full
+| id
+| -
+| 4
+| 140
+| systemadmin
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 141
+| task
+| bronze
+| incremental
+| id
+| updatedAt
+| 16
+| 142
+| taskassignment
+| bronze
+| incremental
+| id
+| updatedAt
+| 8
+| 143
+| taskattachment
+| bronze
+| full
+| id
+| -
+| 3
+| 144
+| taskhistory
+| bronze
+| full
+| id
+| -
+| 9
+| 145
+| tdbpaylog
+| bronze
+| full
+| id
+| -
+| 14
+| 146
+| town
+| bronze
+| full
+| id
+| -
+| 23
+| 147
+| towncorporate
+| bronze
+| full
+| id
+| -
+| 8
+| 148
+| townsealimage
+| bronze
+| full
+| id
+| -
+| 2
+| 149
+| user
+| bronze
+| incremental
+| id
+| updatedAt
+| 15
+| 150
+| userbarrier
+| bronze
+| full
+| id
+| -
+| 12
+| 151
+| userbpay
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 152
+| usercouponlog
+| bronze
+| incremental
+| id
+| updatedAt
+| 7
+| 153
+| userlog
+| bronze
+| incremental
+| id
+| updatedAt
+| 5
+| 154
+| useropenbarrier
+| bronze
+| full
+| id
+| -
+| 7
+| 155
+| userproperty
+| bronze
+| full
+| id
+| -
+| 9
+| 156
+| vat
+| bronze
+| incremental
+| id
+| updatedAt
+| 14
+| 157
+| word
+| bronze
+| full
+| id
+| -
+| 5
+| 158
+| work
+| bronze
+| full
+| id
+| -
+| 10
+| 159
+| worker
+| bronze
+| incremental
+| id
+| updatedAt
+| 17
+| 160
+| workeraction
+| bronze
+| full
+| id
+| -
+| 3
+| 161
+| workerapartment
+| bronze
+| full
+| id
+| -
+| 3
+| 162
+| workerratingdetail
+| bronze
+| full
+| id
+| -
+| 4
+| 163
+| workerwork
+| bronze
+| full
+| id
+| -
+| 3
+| 164
+| workfiles
+| bronze
+| full
+| id
+| -
+| 2
+| 165
+| workimages
+| bronze
+| full
+| id
+| -
+| 2
+| 166
+| wrongmail
+| bronze
+| full
+| id
+| -
+| 13
+|
+4. Tables excluded (76)
+These are not copied at all. Correspondence tables are excluded whole rather than column-filtered, because the sensitive content is the payload itself.
+#
+| Source table
+| Why it is not copied
+| 1
+| advertise
+| correspondence table (policy 4.1.4), matched ['advertise']
+| 2
+| advertisebranch
+| correspondence table (policy 4.1.4), matched ['advertise']
+| 3
+| answer
+| correspondence table (policy 4.1.4), matched ['answer']
+| 4
+| branchhelp
+| correspondence table (policy 4.1.4), matched ['help']
+| 5
+| branchhelpassignee
+| correspondence table (policy 4.1.4), matched ['help']
+| 6
+| branchhelpassignmentlog
+| correspondence table (policy 4.1.4), matched ['help']
+| 7
+| branchhelpimage
+| correspondence table (policy 4.1.4), matched ['help']
+| 8
+| branchhelptag
+| correspondence table (policy 4.1.4), matched ['help']
+| 9
+| cartemp
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 10
+| chatbotanswer
+| correspondence table (policy 4.1.4), matched ['answer', 'chat']
+| 11
+| comment
+| correspondence table (policy 4.1.4), matched ['comment']
+| 12
+| complain
+| correspondence table (policy 4.1.4), matched ['complain']
+| 13
+| complainfiles
+| correspondence table (policy 4.1.4), matched ['complain']
+| 14
+| complainimages
+| correspondence table (policy 4.1.4), matched ['complain']
+| 15
+| complainresult
+| correspondence table (policy 4.1.4), matched ['complain']
+| 16
+| complainresultfiles
+| correspondence table (policy 4.1.4), matched ['complain']
+| 17
+| forum
+| correspondence table (policy 4.1.4), matched ['forum']
+| 18
+| forumfiles
+| correspondence table (policy 4.1.4), matched ['forum']
+| 19
+| forumimages
+| correspondence table (policy 4.1.4), matched ['forum']
+| 20
+| forumlike
+| correspondence table (policy 4.1.4), matched ['forum']
+| 21
+| forumwho
+| correspondence table (policy 4.1.4), matched ['forum']
+| 22
+| garage_raw_import
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 23
+| help
+| correspondence table (policy 4.1.4), matched ['help']
+| 24
+| helpcomment
+| correspondence table (policy 4.1.4), matched ['comment', 'help']
+| 25
+| helpcommentimage
+| correspondence table (policy 4.1.4), matched ['comment', 'help']
+| 26
+| helpdeskstage
+| correspondence table (policy 4.1.4), matched ['help']
+| 27
+| helpdesktag
+| correspondence table (policy 4.1.4), matched ['help']
+| 28
+| helpdesktagfaq
+| correspondence table (policy 4.1.4), matched ['help']
+| 29
+| internalad
+| correspondence table (policy 4.1.4), matched ['internalad']
+| 30
+| internaladimage
+| correspondence table (policy 4.1.4), matched ['internalad']
+| 31
+| internaladwhom
+| correspondence table (policy 4.1.4), matched ['internalad']
+| 32
+| massmail
+| correspondence table (policy 4.1.4), matched ['massmail']
+| 33
+| message
+| correspondence table (policy 4.1.4), matched ['message']
+| 34
+| messagerecieved
+| correspondence table (policy 4.1.4), matched ['message']
+| 35
+| news
+| correspondence table (policy 4.1.4), matched ['news']
+| 36
+| newsfiles
+| correspondence table (policy 4.1.4), matched ['news']
+| 37
+| newsimages
+| correspondence table (policy 4.1.4), matched ['news']
+| 38
+| note
+| correspondence table (policy 4.1.4), matched ['note']
+| 39
+| notification
+| correspondence table (policy 4.1.4), matched ['notification']
+| 40
+| otp
+| credential store (matched ['otp']) - exists to hold secrets; no analytical value, never copied
+| 41
+| otpv2
+| credential store (matched ['otp']) - exists to hold secrets; no analytical value, never copied
+| 42
+| poll
+| correspondence table (policy 4.1.4), matched ['poll']
+| 43
+| poll_answer
+| correspondence table (policy 4.1.4), matched ['answer', 'poll']
+| 44
+| poll_apartment
+| correspondence table (policy 4.1.4), matched ['poll']
+| 45
+| poll_chose_users
+| correspondence table (policy 4.1.4), matched ['poll']
+| 46
+| poll_file
+| correspondence table (policy 4.1.4), matched ['poll']
+| 47
+| poll_picture
+| correspondence table (policy 4.1.4), matched ['poll']
+| 48
+| poll_question
+| correspondence table (policy 4.1.4), matched ['poll', 'question']
+| 49
+| pollapartment
+| correspondence table (policy 4.1.4), matched ['poll']
+| 50
+| pollchose
+| correspondence table (policy 4.1.4), matched ['poll']
+| 51
+| pollresult
+| correspondence table (policy 4.1.4), matched ['poll']
+| 52
+| pollwhom
+| correspondence table (policy 4.1.4), matched ['poll']
+| 53
+| post
+| correspondence table (policy 4.1.4), matched ['post']
+| 54
+| postcomment
+| correspondence table (policy 4.1.4), matched ['comment', 'post']
+| 55
+| postcommentimage
+| correspondence table (policy 4.1.4), matched ['comment', 'post']
+| 56
+| postcommentlike
+| correspondence table (policy 4.1.4), matched ['comment', 'post']
+| 57
+| postimage
+| correspondence table (policy 4.1.4), matched ['post']
+| 58
+| postlike
+| correspondence table (policy 4.1.4), matched ['post']
+| 59
+| processcomment
+| correspondence table (policy 4.1.4), matched ['comment']
+| 60
+| property260226
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 61
+| protopro
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 62
+| qpaytoken
+| credential store (matched ['token']) - exists to hold secrets; no analytical value, never copied
+| 63
+| qpaytokensb
+| credential store (matched ['token']) - exists to hold secrets; no analytical value, never copied
+| 64
+| secondsystem
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 65
+| tablename
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 66
+| taskcomment
+| correspondence table (policy 4.1.4), matched ['comment']
+| 67
+| taskcommentattachment
+| correspondence table (policy 4.1.4), matched ['comment']
+| 68
+| tempdel
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 69
+| tempreport
+| ad-hoc / temp / duplicate-looking table - not a stable interface
+| 70
+| tttoken
+| credential store (matched ['token']) - exists to hold secrets; no analytical value, never copied
+| 71
+| useradvertise
+| correspondence table (policy 4.1.4), matched ['advertise']
+| 72
+| userfeedback
+| correspondence table (policy 4.1.4), matched ['feedback']
+| 73
+| userfeedbackanswer
+| correspondence table (policy 4.1.4), matched ['answer', 'feedback']
+| 74
+| usernote
+| correspondence table (policy 4.1.4), matched ['note']
+| 75
+| workernotification
+| correspondence table (policy 4.1.4), matched ['notification']
+| 76
+| towncorporate_state
+| VIEW not a base table - derived, so a table-level allowlist does not describe what it exposes; excluded pending data-officer decision
+|
+5. Allowed columns, per table
+Every column the platform would copy. Anything absent from these lists stays in the source database. Please strike out anything that should not be copied.
+action   (4 columns)
+id, rootId, type, branchPaymentType
+adminaccount   (7 columns)
+id, workerId, status, lastLoginAt, createdBy, createdAt, updatedAt
+adminaction   (3 columns)
+id, systemAdminId, actionId
+adminbranchentry   (11 columns)
+id, adminId, workerId, branchId, adminSessionId, expiresAt, consumedAt, requestIp, requestId, createdAt, updatedAt
+aiinfo   (6 columns)
+id, userId, robotLogo, regDate, device, rejected
+allowlistproperty   (10 columns)
+id, propertyId, type, subType, workerId, allowListPropertyHistoryId, branchId, isActive, createdAt, updatedAt
+allowlistpropertyhistory   (12 columns)
+id, regWorkerId, outWorkerId, propertyId, startDate, endDate, type, subType, branchId, isActive, createdAt, updatedAt
+apartment   (20 columns)
+id, isDeleted, branchId, province, district, committee, apartmentIdBank, stateKorpus, stateKorpusBilling, ortsCount, townId, builtDate, qpayInvoiceCode, apartmentIdTransBank, khanBillingKorpus, formula, unitPrice, kontorCode, bankId, khorooid
+apartmentmodule   (8 columns)
+id, moduleId, formula, workerId, createdAt, updatedAt, apartmentId, unitPrice
+apartmentpaymentgroup   (4 columns)
+id, branchId, apartmentId, paymentGroupId
+balance   (26 columns)
+id, branchId, workerId, apartmentId, propertyId, prevBalance, cost, monthBalance, pay, paymentBalance, regDate, paydBalanceId, paymentDate, paymentType, bankId, townId, payOff, payOffPercent, payOffStartDate, payOffDayCost, qpayObjectId, userId, stateInvoiceId, paymentGroupId, transactionDate, invoiceMonth
+balancegraph   (7 columns)
+id, branchId, regDate, date, cost, pay, townId
+balancehistory   (4 columns)
+id, rootBalanceId, balanceId, amount
+barrier   (12 columns)
+id, branchId, code, type, isActive, ip, sn, interval, googlePosition, apartmentId, subType, subCode
+billinglog   (6 columns)
+id, ip, partnerId, action, createdAt, updatedAt
+blacklistproperty   (9 columns)
+id, propertyId, type, subType, workerId, blackListPropertyHistoryId, branchId, createdAt, updatedAt
+blacklistpropertyhistory   (11 columns)
+id, regWorkerId, outWorkerId, propertyId, startDate, endDate, type, subType, branchId, createdAt, updatedAt
+branch   (58 columns)
+id, isActive, address, province, district, committee, logoImage, contractDate, endContractDate, expirationDate, chargeCount, bankId, introMsg, branchPaymentType, showPaymentGraph, isAppActive, canUserAddNews, certificate, color1, color2, color3, bgImage, lastBalanceFile, lastBillFile, hasDiscount, customPrice, vatType, vatDistrictCode, webPaymentMsg, branchInvoiceMsg, upgradeRequested, serviceType, subType, workerId, payOffPercent, payOffStartDay, autoApproveDay, canSkipPay, defaultPrice, approvationDate, appCarTypes, mqttCarUrl, akrel, khanBranchNumber, khanBeginDate, rate, oldBranchId, carLimit, subsOnlyTransaction, canUserDeleteCar, contractCancelled, hasBilling, createdAt, updatedAt, useBasePrice, approveAble, stampImage, externalId
+branchbalance   (10 columns)
+id, branchId, workerId, prevBalance, cost, pay, paymentBalance, regDate, recordId, branchInvoiceId
+branchcharge   (6 columns)
+id, branchId, formula, workerId, createdAt, updatedAt
+branchextracharge   (8 columns)
+id, branchId, formula, total, count, moduleId, createdAt, workerId
+branchinfo   (11 columns)
+id, date, isDeleted, infoType, videoUrl, workerId, all, rate, banner, startDate, dueDate
+branchinfofile   (2 columns)
+id, branchInfoId
+branchinfoimage   (2 columns)
+id, branchInfoId
+branchinfowhom   (3 columns)
+id, branchInfoId, branchId
+branchinvoice   (8 columns)
+id, branchId, total, createdAt, updatedAt, status, month, totalCount
+branchinvoicepayment   (6 columns)
+id, branchInvoiceId, total, createdAt, updatedAt, count
+branchinvoicepaymentdetail   (8 columns)
+id, branchInvoicePaymentId, total, unitPrice, count, moduleId, createdAt, updatedAt
+branchinvoicesummarylog   (7 columns)
+id, month, year, summary, data, createdAt, updatedAt
+branchpaymentdetail   (11 columns)
+id, branchId, apartmentId, formula, total, regDate, branchbalanceId, month, count, unitPrice, townId
+branchpaymentsummary   (11 columns)
+id, suutsCount, grajCount, aguulahCount, esukhStartDate, contractDate, moduleEndDate, unitPrice, totalPrice, createdAt, updatedAt
+branchstatedifference   (9 columns)
+id, apartmentId, branchId, esukhTotal, stateTotal, propertyCount, date, createdAt, updatedAt
+burtelog   (8 columns)
+id, type, data, status, response, branchId, createdAt, updatedAt
+camera   (21 columns)
+id, branchId, ip, user, pass, getEndPoint, insertEndPoint, deleteEndPoint, position, cameraType, authType, updateEndPoint, inTime, outTime, showApp, groupCode, addSignature, deleteSignature, selectSignature, getRecordSignature, parkingLot
+capital   (21 columns)
+id, branchId, regWorkerId, regDate, type, isDeleted, unitPrice, startDate, validDate, cnt, measure, apartmentId, ortsNo, madeIn, code, workerId, companyId, registryNo, capacity, speed, floorCount
+capitalfiles   (3 columns)
+id, capitalId, fileType
+capitalimages   (3 columns)
+id, capitalId, imageType
+capitalrepairs   (5 columns)
+id, capitalId, regDate, regWorkerId, price
+capitalworker   (3 columns)
+id, capitalId, workerId
+car   (17 columns)
+id, isDeleted, branchId, townId, apartmentId, propertyId, workerId, userId, type, endDate, date, plateNumber, ortsNo, cameraIds, request, commandType, response
+category   (1 columns)
+id
+chip   (8 columns)
+id, chipNo, type, propertyId, branchId, userId, apartmentId, townId
+chipbarrier   (6 columns)
+id, chipId, barrierId, perms, commandType, commandSuccess
+company   (11 columns)
+id, branchId, province, district, committee, address, workerId, date, bankId, serviceType, subType
+companybranch   (10 columns)
+id, branchId, companyId, date, workerId, isDeleted, deletedAt, deletedByWorkerId, serviceType, bankId
+companycapital   (5 columns)
+id, capitalId, companyId, branchId, workerId
+companyrating   (7 columns)
+id, companyBranchId, score, ratingMonth, workerId, createdAt, updatedAt
+conciergeitem   (7 columns)
+id, webLink, fbLink, appLink, logo, type, address
+conciergemenu   (3 columns)
+id, icon, web
+contract   (7 columns)
+id, companyId, branchId, date1, date2, file, number
+cost   (12 columns)
+id, isDeleted, branchId, townId, regdate, workerId, serviceId, costdate, amount, costimage, recordNo, townCorporateId
+counter   (2 columns)
+jsondata, id
+coupon   (10 columns)
+id, startDate, endDate, image, createdAt, updatedAt, isDeleted, workerId, fbPage, link
+couponbranch   (3 columns)
+id, couponId, branchId
+couponcreater   (4 columns)
+id, couponId, createdAt, updatedAt
+coupondiscount   (6 columns)
+id, couponId, discount, totalAmount, createdAt, updatedAt
+defaultaction   (3 columns)
+id, positionId, actionId
+electricpayed   (11 columns)
+id, electricUserId, ccode, amount, retId, payedDate, merchantCode, qpayInvoiceId, image, createdAt, updatedAt
+electricuser   (4 columns)
+id, userId, ttCode, jsonData
+errorvat   (3 columns)
+id, vatId, jsonData
+files   (1 columns)
+id
+graphsummary   (9 columns)
+id, count, amount, label, type, amount2, branchId, month, year
+group   (9 columns)
+id, isDeleted, code, ableNotif, createdUserId, createdAt, updatedAt, status, tag
+groupapartment   (5 columns)
+id, groupId, apartmentId, createdAt, updatedAt
+groupbranch   (5 columns)
+id, groupId, branchId, createdAt, updatedAt
+groupjoinrequest   (6 columns)
+id, userId, groupId, status, createdAt, updatedAt
+grouptown   (6 columns)
+id, groupId, townId, createdAt, updatedAt, apartmentId
+groupuser   (7 columns)
+id, userId, groupId, createdAt, updatedAt, propertyId, isAdmin
+images   (2 columns)
+id, imageType
+importantfiles   (5 columns)
+id, isDeleted, fileType, createdAt, updatedAt
+incomebytypes   (11 columns)
+id, branchId, regDate, date, byBankCount, byCashCount, byApplyCount, byBankAmount, byCashAmount, byApplyAmount, townId
+incomepivot   (8 columns)
+id, bankId, count, amount, regDate, branchId, apartmentId, townId
+information   (12 columns)
+id, date, isDeleted, branchId, propertyId, infoType, sentType, videoUrl, addType, workerId, userId, townId
+infowhom   (4 columns)
+id, informationId, sentType, value
+inouthistory   (15 columns)
+id, carId, inDate, outDate, branchId, recordNo, propertyId, cameraId, plateNumber, endDate, address, type, diff, formula, regDate
+invoice   (9 columns)
+id, invoiceBucketId, totalAmount, status, createdAt, updatedAt, paymentType, checkKey, payer
+invoicebucket   (4 columns)
+id, invoices, createdAt, updatedAt
+khanpaylog   (14 columns)
+id, isSent, regDate, amount, propertyId, branchId, invoiceId, payedBalanceId, settleId, bankCode, refId, sentDate, workerId, sentJournalNo
+liftfloor   (3 columns)
+id, barrierId, value
+like   (4 columns)
+id, userId, workerId, likeType
+log   (8 columns)
+id, changeRowId, tableId, actionType, actionDate, workerId, branchId, ip
+mainconfig   (10 columns)
+id, branchId, serviceId, sort, formula, stateBankId, isVat, paymentGroupId, isDeleted, propertyTypes
+mainconfighistory   (8 columns)
+id, prevFormula, newFormula, workerId, mainConfigId, branchId, createdAt, updatedAt
+meter   (12 columns)
+id, propertyId, devEui, valveState, period, branchId, apartmentId, fport, serviceId, validatedDate, expireDate, battery
+meterhistory   (8 columns)
+id, updatedDate, meterCount, difference, meterId, propertyId, serviceId, branchId
+meterinfo   (5 columns)
+id, propertyId, updatedDate, meterCount, difference
+method   (4 columns)
+id, isActive, quota, methodTypeId
+methodtype   (1 columns)
+id
+module   (6 columns)
+id, logo, createdAt, updatedAt, paymentType, basePrice
+monthlyconfig   (9 columns)
+id, branchId, apartmentId, serviceId, sort, formula, stateBankId, isVat, date
+monthlypayment   (18 columns)
+id, branchId, apartmentId, propertyId, serviceId, sort, formula, stateBankId, isVat, zaalt1, zaalt2, zaaltSum, priceSum, isApprove, date, regDate, propertyConfigId, paymentGroupId
+monthlypaymentapproved   (18 columns)
+id, branchId, apartmentId, propertyId, serviceId, sort, formula, isVat, zaalt1, zaalt2, zaaltSum, priceSum, isApprove, date, regDate, propertyConfigId, stateBankId, paymentGroupId
+monthremain   (15 columns)
+id, calcDate, propertyId, doorNo, apartmentId, branchId, townId, remainEarly, cost, payes, remainLast, paymentDate, userId, balanceId, transactionDate
+nearbyservice   (5 columns)
+id, categoryId, address, lng, lat
+negdicard   (7 columns)
+id, userId, brand, expdate, maskedpan, status, color
+negdihistory   (16 columns)
+id, tranid, checkid, status, propertyId, amount, userId, invoiceBucketId, createdAt, updatedAt, branchTranStatus, settleId, settleReferenceId, sentJournalNo, bankCode, branchTranDate
+overpaidbalance   (8 columns)
+id, branchId, apartmentId, propertyId, paymentBalance, paymentDate, createdAt, updatedAt
+overpayment   (5 columns)
+id, branchId, total, createdAt, updatedAt
+paymentapprove   (16 columns)
+id, branchId, apartmentId, paymentDate, regDate, workerId, stage, approvedDate, cancelDate, totalSuuts, totalPrice, townId, totalAguulah, totalGraj, totalPayd, paymentGroupId
+paymentapprovejob   (18 columns)
+id, action, status, branchId, townId, apartmentId, paymentGroupId, year, month, workerId, payload, result, error, regDate, startDate, doneDate, processTime, attempt
+paymentgroup   (7 columns)
+id, branchId, isDeleted, qpayInvoiceCode, townId, vatType, vatDistrictCode
+paymentpartner   (7 columns)
+id, qpayInvoiceCode, branchId, type, billType, logo, order
+paymenttypereport   (12 columns)
+id, paymentType, exDate, StatePay, dansPay, belenPay, urgudulPay, smaPay, zalaruulgaPay, xPay, xPayPos, digiPay
+performance   (8 columns)
+id, workId, workerId, branchId, date, stage, process, isDeleted
+phone   (3 columns)
+id, branchId, order
+position   (1 columns)
+id
+pricecheckrequest   (6 columns)
+id, userId, propertyId, requestType, createdAt, updatedAt
+priceinfo   (4 columns)
+id, barrierId, isActive, userFilter
+priceinfomethod   (5 columns)
+id, isActive, priceInfoId, methodId, price
+probill   (8 columns)
+id, propertyId, billerId, code, code2, vatType, createdAt, updatedAt
+process   (5 columns)
+id, salesProcessId, step, regDate, workerId
+profession   (1 columns)
+id
+property   (33 columns)
+id, isDeleted, branchId, apartmentId, ortsNo, doorNo, doorIndex, roomCount, size, floor, propertyNo, isCompany, isCharge, propertyType, counterType, familyCount, stateBankId, khanBankId, pay1, pay2, pay3, height, meterId, townId, erchimCode, stateCode, bairId, formula, financeCode, code, fullAddress, tCode, externalId
+propertycaraccess   (6 columns)
+id, propertyId, carAccess, createdAt, updatedAt, branchId
+propertycaraccesshistory   (7 columns)
+id, propertyId, carAccess, current, status, createdAt, updatedAt
+propertyconfig   (15 columns)
+id, branchId, serviceId, sort, formula, stateBankId, isVat, unitPrice, paymentGroupId, apartmentId, townId, propertyId, mainConfigId, propertyTypes, isDeleted
+propertydept   (13 columns)
+id, notPayedMonths, totalDept, doorNo, ortsNo, propertyId, userId, apartmentId, regDate, branchId, calcDate, months, townId
+propertyjoinrequest   (11 columns)
+id, userId, propertyId, status, ownerType, createdAt, updatedAt, branchId, approvedWorkerId, tempPropertyId, requestType
+propertyownerhistory   (7 columns)
+id, propertyId, currentUserId, prevUserId, workerId, createdAt, updatedAt
+propertyprivateconfig   (10 columns)
+id, paymentgroupId, serviceId, amount, workerId, propertyId, isActive, branchId, createdAt, updatedAt
+qpayhistory   (13 columns)
+id, callbackUrl, qpayId, stage, checked, regDate, checkedDate, branchId, propertyId, createdAt, updatedAt, invoiceBucketId, qpayData
+ratebranchinfo   (5 columns)
+id, branchInfoId, workerId, rate, date
+ratecompany   (5 columns)
+id, branchId, rate, workerId, date
+rateworker   (7 columns)
+id, workerId, raterWorkerId, averageScore, year, month, date
+ratingcriteria   (6 columns)
+id, isActive, sortOrder, branchId, createdAt, updatedAt
+reference   (8 columns)
+id, root, date, workerId, order, isDeleted, subType, fromCapital
+rent   (5 columns)
+id, endDate, startDate, userPropertyId, rate
+reverselog   (5 columns)
+id, balanceId, amount, createdAt, updatedAt
+room   (9 columns)
+id, branchId, hourPrice, type, apartmentId, roomNo, isDeleted, isPay, size
+roomimage   (3 columns)
+id, roomId, image
+roomorder   (20 columns)
+id, roomId, propertyId, userId, startDate, endDate, type, state, workerId, approvedDate, regDate, branchId, apartmentId, minutes, hourPrice, totalPrice, zahApartmentId, address, hourString, orderDay
+salesprocess   (5 columns)
+id, processId, branchAddress, step, branchId
+service   (5 columns)
+id, isDeleted, date, hasMeter, stateBankId
+signuplog   (2 columns)
+id, lastStep
+statebalancedifference   (8 columns)
+id, propertyId, diffAmount, stateAmount, ourAmount, checkedDate, branchId, apartmentId
+statebankstatement   (18 columns)
+id, acntNo, amount, stateBranch, journalNo, txnDate, txnType, branchId, regUser, regDate, success, propertyId, bankId, townId, createdAt, updatedAt, townCorporateId, paymentType
+statepayment   (9 columns)
+id, propertyId, total, invoiceId, year, month, paymentDate, branchId, apartmentId
+staterawtransaction   (4 columns)
+id, regDate, branchId, townId
+statesuberrors   (4 columns)
+id, propertyId, balanceId, createdAt
+systemadmin   (5 columns)
+id, isDeleted, legacyWorkerId, createdAt, updatedAt
+task   (16 columns)
+id, status, branchId, categoryId, sourceType, createdBy, assignedTo, dueDate, completedDate, isRecurring, recurrencePattern, lastRecurringDate, parentTaskId, isDeleted, createdAt, updatedAt
+taskassignment   (8 columns)
+id, taskId, userId, assignedBy, role, isDeleted, createdAt, updatedAt
+taskattachment   (3 columns)
+id, taskId, type
+taskhistory   (9 columns)
+id, taskId, changedBy, action, oldValue, newValue, ipAddress, userAgent, createdAt
+tdbpaylog   (14 columns)
+id, isSent, regDate, sentDate, amount, branchId, propertyId, invoiceId, payedBalanceId, sentJournalNo, settleId, workerId, bankCode, refId
+town   (23 columns)
+id, isDeleted, branchId, province, district, committee, stateStartDate, journalNo, lastDownloadDate, townInvoiceMsg, remainMsg, vatType, vatDistrictCode, bankId, akrel, khanBranchNumber, khanBeginDate, showCost, vatDistrictCodeNew, pos3Approved, stateKhoroo, coordinate, image
+towncorporate   (8 columns)
+id, isDeleted, bankId, townId, journalNo, lastSyncDate, startSyncDate, hasCostSync
+townsealimage   (2 columns)
+id, townId
+user   (15 columns)
+id, familyCount, image, branchId, getVatType, vatId, validateCode, otpDate, khanWalletUserId, lastLoggedDate, lastWalletLoggedDate, gender, createdAt, updatedAt, externalId
+userbarrier   (12 columns)
+id, barrierId, userId, propertyId, startDate, endDate, regDate, branchId, townId, apartmentId, ortsNo, disabled
+userbpay   (5 columns)
+id, userId, bpayId, createdAt, updatedAt
+usercouponlog   (7 columns)
+id, userId, couponId, action, createdAt, updatedAt, code
+userlog   (5 columns)
+id, userId, actionId, createdAt, updatedAt
+useropenbarrier   (7 columns)
+id, barrierId, userId, propertyId, openedDate, branchId, action
+userproperty   (9 columns)
+id, propertyId, userId, workerId, ownerType, active, confirmed, getVatType, isCompany
+vat   (14 columns)
+id, propertyId, balanceId, regDate, qrJson, suffix, type, branchBalanceId, branchId, isDeleted, requestData, stage, createdAt, updatedAt
+word   (5 columns)
+id, eng, mon, class, type
+work   (10 columns)
+id, branchId, workerId, categoryId, stage, type, startDate, endDate, regDate, isDeleted
+worker   (17 columns)
+id, isDeleted, branchId, positionType, positionId, image, gender, rootId, file, professionId, address, oldWorkerId, createdAt, updatedAt, isUseManagerApp, lastDeviceId, externalId
+workeraction   (3 columns)
+id, workerId, actionId
+workerapartment   (3 columns)
+id, workerId, apartmentId
+workerratingdetail   (4 columns)
+id, rateWorkerId, criteriaId, score
+workerwork   (3 columns)
+id, workerId, workId
+workfiles   (2 columns)
+id, fileType
+workimages   (2 columns)
+id, imageType
+wrongmail   (13 columns)
+id, regDate, fixedDate, workerId, userId, branchId, propertyId, status, apartmentId, html, qrImage, vatId, filePath

@@ -1,0 +1,1932 @@
+{
+ "systems": {
+  "esukh": {
+   "description": "esukh (иСӨХ) is Hubilai Tech's (HTI) app for apartment owners' associations (СӨХ) and the pilot source of the HTI data platform: a MySQL 8 database of 241 tables, restored nightly. branchId columns identify the СӨХ (branch table, 'СӨХ-ны сан'; DDL comment 'СӨХ-ын id'), and esukh.property is the residential estate; person columns are per-column UUID tokens, so a person's userId, workerId, currentUserId etc. tokens do not join to each other (claude.md G18)."
+  }
+ },
+ "tables": {
+  "bronze_ref.esukh_action": {
+   "description": "Lookup of actions (D8 Reference & config); workers are linked to actions through workeraction.actionId (declared FK).",
+   "key": "id",
+   "columns": {
+    "name": "Action label - a lookup label, not a person's name (permitted by the 2026-10-08 esukh document)."
+   }
+  },
+  "bronze_ref.esukh_apartment": {
+   "description": "Apartments (D2 Property & housing); carries the same province/district/committee columns as branch (bug report). apartmentName is not copied.",
+   "key": "id",
+   "columns": {
+    "apartmentIdBank": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateKorpus": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateKorpusBilling": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "qpayInvoiceCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "apartmentIdTransBank": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBillingKorpus": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "formula": "Withdrawn by the esukh team's 2026-10-08 column document (formula on eight tables); legacy values only.",
+    "kontorCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08)."
+   }
+  },
+  "bronze_ref.esukh_apartmentpaymentgroup": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_balancegraph": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "cost": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "pay": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_balancehistory": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_barrier": {
+   "description": "Access-control devices (D5): one row per barrier, lift, entrance or zlan device, typed by type (DDL comment).",
+   "key": "id",
+   "columns": {
+    "code": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "type": "1 = хаалт (gate), 2 = лифт (lift)",
+    "ip": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "sn": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "googlePosition": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "subType": "Mixed code: some values resolve to reference (e.g. ZLAN), others collide with unrelated reference ids - do not join to reference blindly (claude.md 5h).",
+    "subCode": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_billinglog": {
+   "description": "Billing partner log (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_branch": {
+   "description": "One row per СӨХ (apartment owners' association) - the organisation register (table comment 'СӨХ -ны сан'); use it for organisation-level attributes such as location (province/district), service type and contract dates. Do not join it to graphsummary/branchinvoice for a customer: that makes one СӨХ's revenue attributable (claude.md). The control table now loads this table to bronze, so this bronze_ref copy is stale (claude.md 5j).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "province -> silver.esukh_reference.id",
+    "district -> silver.esukh_reference.id",
+    "serviceType -> silver.esukh_reference.id"
+   ],
+   "columns": {
+    "id": "СӨХ (branch) id; the value other tables carry as branchId (claude.md treats branchId as the per-organisation key).",
+    "province": "Province (аймаг) id in reference; reference.root of the district should equal this, but 8 of 432 rows have a district outside the province, mostly Чингэлтэй дүүрэг under rural аймаг (bug report 2026-09-29, still occurring).",
+    "district": "District (дүүрэг) id in reference; its reference.root is its parent province. See the province/district mismatch bug (8 of 432 rows).",
+    "serviceType": "Organisation service type; resolves to reference.id for its label (categories include СӨХ, lift maintenance, security and cleaning) - a confirmed KPI dimension (claude.md 5h)."
+   }
+  },
+  "bronze_ref.esukh_branchinfofile": {
+   "description": "Files attached to a branchinfo item (declared FK branchInfoId -> branchinfo); only ids are copied.",
+   "key": "id",
+   "joins": [
+    "branchInfoId -> silver.esukh_branchinfo.id"
+   ],
+   "columns": {
+    "branchInfoId": "Branch info item (declared FK -> branchinfo.id)."
+   }
+  },
+  "bronze_ref.esukh_branchinfoimage": {
+   "description": "Images attached to a branchinfo item (declared FK branchInfoId -> branchinfo); only ids are copied.",
+   "key": "id",
+   "joins": [
+    "branchInfoId -> silver.esukh_branchinfo.id"
+   ],
+   "columns": {
+    "branchInfoId": "Branch info item (declared FK -> branchinfo.id)."
+   }
+  },
+  "bronze_ref.esukh_branchinfowhom": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_branchinvoice": {
+   "description": "Per-organisation financial figures (invoices issued to a СӨХ) keyed by branchId (D2 in the schema analysis). Commercially confidential: never show one СӨХ another's revenue or join to branch for a customer (claude.md).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "branchId -> silver.esukh_branch.id"
+   ],
+   "columns": {
+    "branchId": "The СӨХ the invoice figures belong to; filter to the viewer's own branchId (claude.md)."
+   }
+  },
+  "bronze_ref.esukh_branchinvoicepayment": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_branchinvoicepaymentdetail": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_branchpaymentdetail": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_branchstatedifference": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_burtelog": {
+   "description": "Integration log (D9 Logs, audit & integration).",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_capitalimages": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_category": {
+   "description": "Category lookup (D8 Reference & config); target of nearbyservice.categoryId (declared FK). Its name column was not copied (over-filtered lookup, schema analysis 7.2), so only ids are available. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_chipbarrier": {
+   "description": "Links access chips to barriers (declared FKs chipId -> chip, barrierId -> barrier); D5 Access control & devices. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "joins": [
+    "chipId -> silver.esukh_chip.id",
+    "barrierId -> silver.esukh_barrier.id"
+   ],
+   "columns": {
+    "chipId": "Chip (declared FK -> chip.id).",
+    "barrierId": "Barrier device (declared FK -> barrier.id)."
+   }
+  },
+  "bronze_ref.esukh_conciergemenu": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "icon": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "web": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_contract": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "companyId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "file": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "number": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_counter": {
+   "description": "Refused from the 2026-10-08 allowlist: the esukh team allowed only jsondata, an opaque JSON blob of unknown content (open question to the team). Stale copy from an earlier load - do not use. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "columns": {
+    "jsondata": "Opaque JSON blob; content unknown - the esukh team has been asked what it holds."
+   }
+  },
+  "bronze_ref.esukh_couponbranch": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_couponcreater": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_defaultaction": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_errorvat": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "jsonData": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_files": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_graphsummary": {
+   "description": "Per-organisation financial summary figures keyed by branchId (classified D4 in the schema analysis). Commercially confidential: never show one СӨХ another's figures or join to branch for a customer (claude.md).",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.esukh_branch.id"
+   ],
+   "columns": {
+    "label": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "branchId": "The СӨХ the figures belong to; filter to the viewer's own branchId (claude.md)."
+   }
+  },
+  "bronze_ref.esukh_groupapartment": {
+   "description": "Links groups to apartments (declared FKs groupId -> group, apartmentId -> apartment).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "groupId -> silver.esukh_group.id",
+    "apartmentId -> silver.esukh_apartment.id"
+   ],
+   "columns": {
+    "groupId": "Group (declared FK -> group.id).",
+    "apartmentId": "Apartment (declared FK -> apartment.id)."
+   }
+  },
+  "bronze_ref.esukh_groupbranch": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_grouptown": {
+   "description": "Links groups to towns (declared FKs groupId -> group, townId -> town, apartmentId -> apartment).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "groupId -> silver.esukh_group.id",
+    "townId -> silver.esukh_town.id"
+   ],
+   "columns": {
+    "groupId": "Group (declared FK -> group.id).",
+    "townId": "Town (declared FK -> town.id)."
+   }
+  },
+  "bronze_ref.esukh_images": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_importantfiles": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_incomebytypes": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "bronze_ref.esukh_infowhom": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "value": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_invoice": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_invoicebucket": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_liftfloor": {
+   "description": "D4 Metering & utilities table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "value": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_mainconfig": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_meter": {
+   "description": "D4 Metering & utilities table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "devEui": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "fport": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_meterhistory": {
+   "description": "D4 Metering & utilities table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_method": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_methodtype": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_module": {
+   "description": "Billable modules (D2 Property & housing); referenced by apartmentmodule and branchinvoicepaymentdetail (moduleId).",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_monthlypayment": {
+   "description": "Large monthly billing table (~16.5M rows; D3 Billing & payments). Rows change after insert (isApprove), and the table has no update timestamp, so it is reloaded in full (source-fixes report).",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "formula": "Withdrawn by the esukh team's 2026-10-08 column document (formula on eight tables); legacy values only.",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "isApprove": "Approval flag; changes after the row is inserted (source-fixes report).",
+    "regDate": "Row creation timestamp (source-fixes report); it is not a change watermark.",
+    "priceSum": "Calculated service charge (configuration), NOT a payment - never add to balance"
+   }
+  },
+  "bronze_ref.esukh_overpaidbalance": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_overpayment": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_paymentgroup": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "qpayInvoiceCode": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_paymentpartner": {
+   "description": "Payment partners / billers (D3 Billing & payments); target of probill.billerId (declared FK). Its qpay login/token credential columns are not in the lake.",
+   "key": "id",
+   "columns": {
+    "qpayInvoiceCode": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "logo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_paymenttypereport": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_phone": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_priceinfomethod": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_probill": {
+   "description": "Links properties to billers (declared FKs propertyId -> property, billerId -> paymentpartner); D3 Billing & payments.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertyId -> silver.esukh_property.id",
+    "billerId -> silver.esukh_paymentpartner.id"
+   ],
+   "columns": {
+    "propertyId": "Property (declared FK -> property.id).",
+    "billerId": "Biller (declared FK -> paymentpartner.id)."
+   }
+  },
+  "bronze_ref.esukh_propertycaraccess": {
+   "description": "Car-access settings per property (D2 Property & housing); propertyId is a declared FK to property. The control table now loads this table to bronze, so this bronze_ref copy is stale (claude.md 5j).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertyId -> silver.esukh_property.id"
+   ],
+   "columns": {
+    "propertyId": "Property (declared FK -> property.id)."
+   }
+  },
+  "bronze_ref.esukh_propertyconfig": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "townId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_qpayhistory": {
+   "description": "QPay payment history (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "bronze_ref.esukh_ratingcriteria": {
+   "description": "Lookup of worker-rating criteria (үзүүлэлт), e.g. punctuality (Цаг баримтлах) and communication attitude (Харилцаа хандлага) (DDL comments).",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.esukh_branch.id"
+   ],
+   "columns": {
+    "name": "Criterion name (Үзүүлэлтийн нэр), e.g. punctuality (Цаг баримтлах), communication attitude (Харилцаа хандлага).",
+    "isActive": "1 = active (идэвхтэй), 0 = inactive (идэвхгүй).",
+    "sortOrder": "Display order (Эрэмбэлэх дараалал).",
+    "branchId": "Branch id (Салбарын ID); null = applies to all branches."
+   }
+  },
+  "bronze_ref.esukh_reference": {
+   "description": "Lookup table of code labels (521 rows) organised as a hierarchy via root (e.g. district -> parent province). Join a coded column to id to get name/shortname, but only for columns confirmed to be reference keys (branch.province/district/serviceType, task.categoryId); property.propertyType is NOT a reference key and barrier.subType only partly resolves (claude.md 5h). The control table now loads this table to bronze, so this bronze_ref copy is stale (claude.md 5j).",
+   "key": "id",
+   "joins": [
+    "root -> silver.esukh_reference.id"
+   ],
+   "columns": {
+    "id": "Reference code id - the value stored in coded columns that point at reference.",
+    "root": "Parent reference id (hierarchy: a district's root is its province; bug report 2026-09-29).",
+    "name": "Label of the code - a lookup label, not personal data (permitted by the 2026-10-08 esukh document).",
+    "shortname": "Short label of the code - a lookup label, not personal data."
+   }
+  },
+  "bronze_ref.esukh_reverselog": {
+   "description": "D9 Logs, audit & integration table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "bronze_ref.esukh_service": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_signuplog": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_statebalancedifference": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_statebankstatement": {
+   "description": "State bank statement transactions (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "txnDate"
+  },
+  "bronze_ref.esukh_statepayment": {
+   "description": "State payment records per property (D3 Billing & payments); propertyId is a declared FK to property.",
+   "key": "id",
+   "time_column": "paymentDate",
+   "joins": [
+    "propertyId -> silver.esukh_property.id"
+   ],
+   "columns": {
+    "propertyId": "Property (declared FK -> property.id).",
+    "invoiceId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_staterawtransaction": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "bronze_ref.esukh_statesuberrors": {
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_taskattachment": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_town": {
+   "description": "Towns (D2 Property & housing); carries the same province/district/committee columns as branch (bug report). The source table also stores third-party bank credentials, which are not in the lake (source-fixes report).",
+   "key": "id",
+   "columns": {
+    "stateStartDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "journalNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastDownloadDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "townInvoiceMsg": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "remainMsg": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "akrel": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBranchNumber": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBeginDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "showCost": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "pos3Approved": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "coordinate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "image": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_towncorporate": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "journalNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "bronze_ref.esukh_townsealimage": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "bronze_ref.esukh_vat": {
+   "description": "VAT records (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "silver.esukh_action": {
+   "description": "Lookup of actions (D8 Reference & config); workers are linked to actions through workeraction.actionId (declared FK).",
+   "key": "id"
+  },
+  "silver.esukh_adminaccount": {
+   "description": "Admin accounts (D1 Identity & access); status is ACTIVE or DISABLED (DDL enum).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "status": "Account status: ACTIVE or DISABLED (DDL enum).",
+    "lastLoginAt": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "createdBy": "UUID token of the person, vehicle or dwelling referenced by createdBy (token namespace 'createdBy') - not a real id; joins only to other 'createdBy' tokens (G18)."
+   }
+  },
+  "silver.esukh_adminbranchentry": {
+   "description": "Admin branch-entry records (D1 Identity & access).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "expiresAt": "Truncated to the hour.",
+    "consumedAt": "Truncated to the hour.",
+    "requestIp": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_aiinfo": {
+   "description": "AI/robot info (D8 Reference & config). Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "device": "Device reference (schema analysis: tokenise candidate); legacy table not in the current transform_rules - treatment not recorded.",
+    "userId": "Person reference; legacy table not in the current transform_rules - treatment (token vs raw) not recorded."
+   }
+  },
+  "silver.esukh_apartment": {
+   "description": "Apartments (D2 Property & housing); carries the same province/district/committee columns as branch (bug report). apartmentName is not copied.",
+   "key": "id",
+   "columns": {
+    "apartmentIdBank": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateKorpus": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateKorpusBilling": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "builtDate": "Truncated to the hour.",
+    "qpayInvoiceCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "apartmentIdTransBank": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBillingKorpus": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "formula": "Withdrawn by the esukh team's 2026-10-08 column document (formula on eight tables); legacy values only.",
+    "kontorCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08)."
+   }
+  },
+  "silver.esukh_apartmentmodule": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_apartmentpaymentgroup": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_balance": {
+   "description": "Large billing balance table (D3 Billing & payments; claude.md G14 cites ~16M rows, §5j cites 5.1M). It has no update timestamp (source-fixes report).",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "regDate": "Truncated to the hour.",
+    "paymentDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "payOff": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "payOffPercent": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "payOffStartDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "payOffDayCost": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "qpayObjectId": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "stateInvoiceId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "transactionDate": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18).",
+    "cost": "Invoiced amount (нэхэмжлэл)",
+    "pay": "Paid amount (төлөлт)",
+    "paymentBalance": "Balance after this row - take the LATEST row per property, never SUM across rows",
+    "prevBalance": "Balance before this row - not additive",
+    "monthBalance": "Balance for the month - not additive",
+    "invoiceMonth": "Billing month, YYYYMM (e.g. 202610)"
+   }
+  },
+  "silver.esukh_balancegraph": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "regDate": "Truncated to the hour.",
+    "date": "Truncated to the hour.",
+    "cost": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "pay": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_balancehistory": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_barrier": {
+   "description": "Access-control devices (D5): one row per barrier, lift, entrance or zlan device, typed by type (DDL comment).",
+   "key": "id",
+   "columns": {
+    "code": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "type": "1 = хаалт (gate), 2 = лифт (lift)",
+    "ip": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "sn": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "googlePosition": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "subType": "Mixed code: some values resolve to reference (e.g. ZLAN), others collide with unrelated reference ids - do not join to reference blindly (claude.md 5h).",
+    "subCode": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_billinglog": {
+   "description": "Billing partner log (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "ip": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_branch": {
+   "description": "One row per СӨХ (apartment owners' association) - the organisation register (table comment 'СӨХ -ны сан'); use it for organisation-level attributes such as location (province/district), service type and contract dates. Do not join it to graphsummary/branchinvoice for a customer: that makes one СӨХ's revenue attributable (claude.md).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "province -> silver.esukh_reference.id",
+    "district -> silver.esukh_reference.id",
+    "serviceType -> silver.esukh_reference.id"
+   ],
+   "columns": {
+    "id": "СӨХ (branch) id; the value other tables carry as branchId (claude.md treats branchId as the per-organisation key).",
+    "province": "Province (аймаг) id in reference; reference.root of the district should equal this, but 8 of 432 rows have a district outside the province, mostly Чингэлтэй дүүрэг under rural аймаг (bug report 2026-09-29, still occurring).",
+    "district": "District (дүүрэг) id in reference; its reference.root is its parent province. See the province/district mismatch bug (8 of 432 rows).",
+    "logoImage": "Organisation branding image, not a photo of a person (waiver 2026-10-02). Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "contractDate": "Truncated to the hour.",
+    "endContractDate": "Truncated to the hour.",
+    "expirationDate": "Truncated to the hour.",
+    "introMsg": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "certificate": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "bgImage": "Organisation branding image, not a photo of a person (waiver 2026-10-02). Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastBalanceFile": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastBillFile": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "webPaymentMsg": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "branchInvoiceMsg": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "upgradeRequested": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "serviceType": "Organisation service type; resolves to reference.id for its label (categories include СӨХ, lift maintenance, security and cleaning) - a confirmed KPI dimension (claude.md 5h).",
+    "approvationDate": "Truncated to the hour.",
+    "khanBranchNumber": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBeginDate": "Truncated to the hour.",
+    "oldBranchId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "contractCancelled": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "stampImage": "Organisation branding image (stamp), not a photo of a person (waiver 2026-10-02). Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "externalId": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "appCarTypes": "Business category, not a person (G19 / NOT_A_PERSON). It was wrongly tokenised before 2026-10-08, so older silver rows may hold UUIDs instead of the value until the pending in-place migration.",
+    "mqttCarUrl": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only."
+   }
+  },
+  "silver.esukh_branchbalance": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "regDate": "Truncated to the hour.",
+    "recordId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_branchextracharge": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "moduleId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_branchinfo": {
+   "description": "Branch information items (D2 Property & housing); workerId is a declared FK to worker; files/images hang off it via branchinfofile/branchinfoimage.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "date": "Truncated to the hour.",
+    "videoUrl": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "startDate": "Truncated to the hour.",
+    "dueDate": "Truncated to the hour.",
+    "workerId": "UUID token of the worker (declared FK -> worker.id in the source; namespace 'workerId')."
+   }
+  },
+  "silver.esukh_branchinfofile": {
+   "description": "Files attached to a branchinfo item (declared FK branchInfoId -> branchinfo); only ids are copied.",
+   "key": "id",
+   "joins": [
+    "branchInfoId -> silver.esukh_branchinfo.id"
+   ],
+   "columns": {
+    "branchInfoId": "Branch info item (declared FK -> branchinfo.id)."
+   }
+  },
+  "silver.esukh_branchinfoimage": {
+   "description": "Images attached to a branchinfo item (declared FK branchInfoId -> branchinfo); only ids are copied.",
+   "key": "id",
+   "joins": [
+    "branchInfoId -> silver.esukh_branchinfo.id"
+   ],
+   "columns": {
+    "branchInfoId": "Branch info item (declared FK -> branchinfo.id)."
+   }
+  },
+  "silver.esukh_branchinfowhom": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_branchinvoice": {
+   "description": "Per-organisation financial figures (invoices issued to a СӨХ) keyed by branchId (D2 in the schema analysis). Commercially confidential: never show one СӨХ another's revenue or join to branch for a customer (claude.md).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "branchId -> silver.esukh_branch.id"
+   ],
+   "columns": {
+    "branchId": "The СӨХ the invoice figures belong to; filter to the viewer's own branchId (claude.md).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_branchinvoicepayment": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_branchinvoicepaymentdetail": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_branchpaymentdetail": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "regDate": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_branchstatedifference": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "date": "Truncated to the hour.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_burtelog": {
+   "description": "Integration log (D9 Logs, audit & integration).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "data": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "response": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_capital": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "regDate": "Truncated to the hour.",
+    "startDate": "Truncated to the hour.",
+    "validDate": "Truncated to the hour.",
+    "code": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "registryNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "regWorkerId": "UUID token of the person, vehicle or dwelling referenced by regWorkerId (token namespace 'regWorkerId') - not a real id; joins only to other 'regWorkerId' tokens (G18).",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_capitalimages": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_capitalrepairs": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "silver.esukh_car": {
+   "description": "Vehicles registered in esukh (D5 Access control & devices); apartmentId is a declared FK to apartment. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "date",
+   "joins": [
+    "apartmentId -> silver.esukh_apartment.id"
+   ],
+   "columns": {
+    "apartmentId": "Apartment the car is registered to (declared FK -> apartment.id).",
+    "plateNumber": "Vehicle plate number column. Legacy table not in the current transform_rules, so whether silver holds a token or the raw plate is not recorded - check before use."
+   }
+  },
+  "silver.esukh_category": {
+   "description": "Category lookup (D8 Reference & config); target of nearbyservice.categoryId (declared FK). Its name column was not copied (over-filtered lookup, schema analysis 7.2), so only ids are available. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_chip": {
+   "description": "Access-control chips (D5 Access control & devices); propertyId and userId are declared foreign keys to property and user. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "joins": [
+    "propertyId -> silver.esukh_property.id"
+   ],
+   "columns": {
+    "propertyId": "Property the chip belongs to (declared FK -> property.id).",
+    "userId": "User the chip belongs to (declared FK -> user.id). Treatment in silver not recorded in the current transform_rules (legacy table)."
+   }
+  },
+  "silver.esukh_chipbarrier": {
+   "description": "Links access chips to barriers (declared FKs chipId -> chip, barrierId -> barrier); D5 Access control & devices. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "joins": [
+    "chipId -> silver.esukh_chip.id",
+    "barrierId -> silver.esukh_barrier.id"
+   ],
+   "columns": {
+    "chipId": "Chip (declared FK -> chip.id).",
+    "barrierId": "Barrier device (declared FK -> barrier.id)."
+   }
+  },
+  "silver.esukh_companybranch": {
+   "description": "Partner-organisation (харилцагч байгууллага) records of a branch, with removal status (DDL comments on isDeleted/deletedReason/deletedAt). Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "isDeleted": "0 = active (Идэвхтэй), 1 = removed (Хасагдсан).",
+    "deletedAt": "Date removed (Хассан огноо)."
+   }
+  },
+  "silver.esukh_companycapital": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_companyrating": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_conciergeitem": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "webLink": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "fbLink": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "appLink": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "logo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_conciergemenu": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "icon": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "web": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_contract": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "companyId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "file": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "number": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_cost": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "regdate": "Truncated to the hour.",
+    "costdate": "Truncated to the hour.",
+    "recordNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "townCorporateId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_counter": {
+   "description": "Refused from the 2026-10-08 allowlist: the esukh team allowed only jsondata, an opaque JSON blob of unknown content (open question to the team). Stale copy from an earlier load - do not use. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "columns": {
+    "jsondata": "Opaque JSON blob; content unknown - the esukh team has been asked what it holds."
+   }
+  },
+  "silver.esukh_coupon": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_couponbranch": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_couponcreater": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_defaultaction": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_electricpayed": {
+   "description": "Electricity payments (D4 Metering & utilities).",
+   "key": "id",
+   "time_column": "payedDate",
+   "columns": {
+    "ccode": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "retId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "payedDate": "Truncated to the hour.",
+    "qpayInvoiceId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "electricUserId": "UUID token of an electricuser row (namespace 'electricUserId'; rule: identifies a person, vehicle or dwelling).",
+    "merchantCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08)."
+   }
+  },
+  "silver.esukh_electricuser": {
+   "description": "Electricity users (D1 Identity & access).",
+   "key": "id",
+   "columns": {
+    "ttCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "jsonData": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18)."
+   }
+  },
+  "silver.esukh_errorvat": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "jsonData": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_files": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_graphsummary": {
+   "description": "Per-organisation financial summary figures keyed by branchId (classified D4 in the schema analysis). Commercially confidential: never show one СӨХ another's figures or join to branch for a customer (claude.md).",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.esukh_branch.id"
+   ],
+   "columns": {
+    "label": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "branchId": "The СӨХ the figures belong to; filter to the viewer's own branchId (claude.md)."
+   }
+  },
+  "silver.esukh_group": {
+   "description": "Groups (D1 Identity & access); target of groupapartment.groupId and grouptown.groupId (declared FKs).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "code": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "createdUserId": "UUID token of the user who created the group (namespace 'createdUserId', not joinable to userId tokens - G18)."
+   }
+  },
+  "silver.esukh_groupapartment": {
+   "description": "Links groups to apartments (declared FKs groupId -> group, apartmentId -> apartment).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "groupId -> silver.esukh_group.id",
+    "apartmentId -> silver.esukh_apartment.id"
+   ],
+   "columns": {
+    "groupId": "Group (declared FK -> group.id).",
+    "apartmentId": "Apartment (declared FK -> apartment.id).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_groupbranch": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_grouptown": {
+   "description": "Links groups to towns (declared FKs groupId -> group, townId -> town, apartmentId -> apartment).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "groupId -> silver.esukh_group.id",
+    "townId -> silver.esukh_town.id",
+    "apartmentId -> silver.esukh_apartment.id"
+   ],
+   "columns": {
+    "groupId": "Group (declared FK -> group.id).",
+    "townId": "Town (declared FK -> town.id).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "apartmentId": "Apartment (declared FK -> apartment.id). Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_groupuser": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18)."
+   }
+  },
+  "silver.esukh_images": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_importantfiles": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_incomebytypes": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "silver.esukh_information": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "date": "Truncated to the hour.",
+    "videoUrl": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18)."
+   }
+  },
+  "silver.esukh_infowhom": {
+   "description": "D7 Communications & content table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "value": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_inouthistory": {
+   "description": "Vehicle in/out history (D5 Access control & devices); carId identifies the vehicle as a UUID token.",
+   "key": "id",
+   "time_column": "inDate",
+   "columns": {
+    "inDate": "Truncated to the hour.",
+    "outDate": "Truncated to the hour.",
+    "recordNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "endDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "diff": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "regDate": "Truncated to the hour.",
+    "carId": "UUID token of the vehicle (token namespace 'carId'; rule: identifies a person, vehicle or dwelling).",
+    "plateNumber": "Vehicle plate number column; Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed). Treatment (token vs raw) not recorded in transform_rules - check before use."
+   }
+  },
+  "silver.esukh_invoice": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_invoicebucket": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "invoices": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_khanpaylog": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "regDate": "Truncated to the hour.",
+    "refId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "sentDate": "Truncated to the hour.",
+    "sentJournalNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_liftfloor": {
+   "description": "D4 Metering & utilities table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "value": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_like": {
+   "description": "Likes on content - classified as a correspondence table (policy 4.1.4) in the 2026-09-29 schema analysis, but allowlisted (id, contentId, contentType) by the 2026-10-08 esukh document; the silver copy holds only earlier-load person columns.",
+   "key": "id",
+   "columns": {
+    "workerId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "likeType": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "userId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_log": {
+   "description": "Application change log (D9 Logs, audit & integration).",
+   "key": "id",
+   "time_column": "actionDate",
+   "columns": {
+    "changeRowId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "actionDate": "Truncated to the hour.",
+    "ip": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "workerId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_mainconfig": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_mainconfighistory": {
+   "description": "Change history of mainconfig rows (declared FKs mainConfigId -> mainconfig, workerId -> worker); D8 Reference & config.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "mainConfigId -> silver.esukh_mainconfig.id"
+   ],
+   "columns": {
+    "prevFormula": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "newFormula": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "mainConfigId": "Configuration row changed (declared FK -> mainconfig.id).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "workerId": "UUID token of the worker (declared FK -> worker.id in the source; namespace 'workerId')."
+   }
+  },
+  "silver.esukh_meter": {
+   "description": "D4 Metering & utilities table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "devEui": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "fport": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "validatedDate": "Truncated to the hour.",
+    "expireDate": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_meterhistory": {
+   "description": "D4 Metering & utilities table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "updatedDate": "Truncated to the hour.",
+    "branchId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_method": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_methodtype": {
+   "description": "D8 Reference & config table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_module": {
+   "description": "Billable modules (D2 Property & housing); referenced by apartmentmodule and branchinvoicepaymentdetail (moduleId).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "logo": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_monthlypayment": {
+   "description": "Large monthly billing table (~16.5M rows; D3 Billing & payments). Rows change after insert (isApprove), and the table has no update timestamp, so it is reloaded in full (source-fixes report).",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "formula": "Withdrawn by the esukh team's 2026-10-08 column document (formula on eight tables); legacy values only.",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "isApprove": "Approval flag; changes after the row is inserted (source-fixes report).",
+    "date": "Truncated to the hour.",
+    "regDate": "Row creation timestamp (source-fixes report); it is not a change watermark. Truncated to the hour.",
+    "priceSum": "Calculated service charge (configuration), NOT a payment - never add to balance"
+   }
+  },
+  "silver.esukh_monthremain": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_nearbyservice": {
+   "description": "Nearby services (D6 Service & maintenance); categoryId is a declared FK to category.",
+   "key": "id",
+   "joins": [
+    "categoryId -> silver.esukh_category.id"
+   ],
+   "columns": {
+    "categoryId": "Category (declared FK -> category.id).",
+    "lng": "Longitude. The data-copy review requires latitude/longitude to be grouped into a location before gold; not in current transform_rules - check before use. Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lat": "Latitude. The data-copy review requires latitude/longitude to be grouped into a location before gold; not in current transform_rules - check before use. Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_negdicard": {
+   "description": "D5 Access control & devices table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "color": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18)."
+   }
+  },
+  "silver.esukh_negdihistory": {
+   "description": "Negdi payment history (D9 Logs, audit & integration).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "tranid": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "checkid": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "settleId": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "settleReferenceId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "sentJournalNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "branchTranDate": "Truncated to the hour.",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18)."
+   }
+  },
+  "silver.esukh_overpaidbalance": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "paymentDate": "Truncated to the hour.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_overpayment": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_paymentapprove": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "paymentDate": "Truncated to the hour.",
+    "regDate": "Truncated to the hour.",
+    "approvedDate": "Truncated to the hour.",
+    "cancelDate": "Truncated to the hour.",
+    "totalPayd": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "success": "0 = not started, 2 = approving, 1 = approved"
+   }
+  },
+  "silver.esukh_paymentapprovejob": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "payload": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "result": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "regDate": "Truncated to the hour.",
+    "startDate": "Truncated to the hour.",
+    "doneDate": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_paymentgroup": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "qpayInvoiceCode": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_paymentpartner": {
+   "description": "Payment partners / billers (D3 Billing & payments); target of probill.billerId (declared FK). Its qpay login/token credential columns are not in the lake.",
+   "key": "id",
+   "columns": {
+    "qpayInvoiceCode": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "logo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_paymenttypereport": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_phone": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_pricecheckrequest": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_priceinfo": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_priceinfomethod": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id"
+  },
+  "silver.esukh_probill": {
+   "description": "Links properties to billers (declared FKs propertyId -> property, billerId -> paymentpartner); D3 Billing & payments.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertyId -> silver.esukh_property.id",
+    "billerId -> silver.esukh_paymentpartner.id"
+   ],
+   "columns": {
+    "propertyId": "Property (declared FK -> property.id).",
+    "billerId": "Biller (declared FK -> paymentpartner.id).",
+    "code": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "code2": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "vatType": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_process": {
+   "description": "Steps of a sales process (D6 Service & maintenance); salesProcessId is a declared FK to salesprocess.",
+   "key": "id",
+   "time_column": "regDate",
+   "joins": [
+    "salesProcessId -> silver.esukh_salesprocess.id"
+   ],
+   "columns": {
+    "salesProcessId": "Sales process (declared FK -> salesprocess.id).",
+    "regDate": "Truncated to the hour.",
+    "workerId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_property": {
+   "description": "One row per property (сууц; DDL comments call propertyId 'Сууцны id') - the esukh residential estate (~202,335 rows), where claude.md says the residential KPIs 7/9/11 (dwellings, garages, storage) belong. Answers how many properties exist per branch/apartment and of which propertyType.",
+   "key": "id",
+   "columns": {
+    "id": "Property id - the target of declared foreign keys propertyId in chip, probill, statepayment, propertycaraccess and others.",
+    "ortsNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "doorNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "doorIndex": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "floor": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "propertyNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "propertyType": "Property type: 1 = сууц (dwelling), 2 = гараж (garage), 3 = агуулах (storage) - confirmed",
+    "familyCount": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "pay1": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "pay2": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "pay3": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "meterId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "erchimCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "stateCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "bairId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "formula": "Withdrawn by the esukh team's 2026-10-08 column document (formula on eight tables); legacy values only.",
+    "financeCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "code": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "tCode": "Withdrawn by the esukh team's 2026-10-08 column document; listed among the credential / network / financial identifiers still held in silver (ESUKH_FILTER_2026-10-08).",
+    "externalId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "isDeleted": "Soft-delete flag; defaults to 1 in esukh, so do NOT filter on it"
+   }
+  },
+  "silver.esukh_propertycaraccess": {
+   "description": "Car-access settings per property (D2 Property & housing); propertyId is a declared FK to property.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "propertyId -> silver.esukh_property.id"
+   ],
+   "columns": {
+    "propertyId": "Property (declared FK -> property.id).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_propertyconfig": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "formula": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "townId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_propertydept": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "silver.esukh_propertyjoinrequest": {
+   "description": "Property join requests (D2 Property & housing in the schema analysis).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18).",
+    "ownerType": "Business category, not a person (G19 / NOT_A_PERSON). Wrongly tokenised before 2026-10-08, so older silver rows may hold UUIDs until the pending in-place migration.",
+    "approvedWorkerId": "UUID token of the person, vehicle or dwelling referenced by approvedWorkerId (token namespace 'approvedWorkerId') - not a real id; joins only to other 'approvedWorkerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_propertyownerhistory": {
+   "description": "Owner-change history of properties: currentUserId and prevUserId reference user and workerId references worker (declared FKs).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "currentUserId": "UUID token of the current owner user (declared FK -> user.id in the source; namespace 'currentUserId', not joinable to userId tokens - G18).",
+    "prevUserId": "UUID token of the previous owner user (declared FK -> user.id in the source; namespace 'prevUserId').",
+    "workerId": "UUID token of the worker (declared FK -> worker.id in the source; namespace 'workerId')."
+   }
+  },
+  "silver.esukh_propertyprivateconfig": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_qpayhistory": {
+   "description": "QPay payment history (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "callbackUrl": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "qpayId": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "regDate": "Truncated to the hour.",
+    "checkedDate": "Truncated to the hour.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "qpayData": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only."
+   }
+  },
+  "silver.esukh_ratebranchinfo": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "date": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_ratecompany": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "date": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_rateworker": {
+   "description": "One row per rating of a worker by another worker for a given year and month, with the average over all criteria (DDL comments). Answers worker performance-rating questions.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "averageScore": "Average score over all criteria (Нийт үзүүлэлтүүдийн дундаж оноо).",
+    "year": "Year of the rating (Үнэлгээ өгсөн жил).",
+    "month": "Month of the rating, 1-12 (Үнэлгээ өгсөн сар).",
+    "date": "Truncated to the hour.",
+    "workerId": "UUID token of the worker being rated (Үнэлэгдэж буй ажилтны ID; token namespace 'workerId').",
+    "raterWorkerId": "UUID token of the worker giving the rating (Үнэлж буй ажилтны ID; token namespace 'raterWorkerId' - does not join to workerId tokens)."
+   }
+  },
+  "silver.esukh_ratingcriteria": {
+   "description": "Lookup of worker-rating criteria (үзүүлэлт), e.g. punctuality (Цаг баримтлах) and communication attitude (Харилцаа хандлага) (DDL comments).",
+   "key": "id",
+   "joins": [
+    "branchId -> silver.esukh_branch.id"
+   ],
+   "columns": {
+    "isActive": "1 = active (идэвхтэй), 0 = inactive (идэвхгүй).",
+    "sortOrder": "Display order (Эрэмбэлэх дараалал).",
+    "branchId": "Branch id (Салбарын ID); null = applies to all branches.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_reference": {
+   "description": "Lookup table of code labels (521 rows) organised as a hierarchy via root (e.g. district -> parent province). Join a coded column to id to get name/shortname, but only for columns confirmed to be reference keys (branch.province/district/serviceType, task.categoryId); property.propertyType is NOT a reference key and barrier.subType only partly resolves (claude.md 5h).",
+   "key": "id",
+   "joins": [
+    "root -> silver.esukh_reference.id"
+   ],
+   "columns": {
+    "id": "Reference code id - the value stored in coded columns that point at reference.",
+    "root": "Parent reference id (hierarchy: a district's root is its province; bug report 2026-09-29).",
+    "date": "Truncated to the hour.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "name": "Label of the code - a lookup label, not personal data (permitted by the 2026-10-08 esukh document).",
+    "shortname": "Short label of the code - a lookup label, not personal data."
+   }
+  },
+  "silver.esukh_rent": {
+   "description": "Rental periods (D2 Property & housing).",
+   "key": "id",
+   "time_column": "startDate",
+   "columns": {
+    "endDate": "Truncated to the hour.",
+    "startDate": "Truncated to the hour.",
+    "rate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "userPropertyId": "UUID token of a userproperty row (namespace 'userPropertyId'; rule: identifies a person, vehicle or dwelling) - does not join to userproperty.id."
+   }
+  },
+  "silver.esukh_reverselog": {
+   "description": "D9 Logs, audit & integration table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_room": {
+   "description": "Rooms (D2 Property & housing).",
+   "key": "id",
+   "columns": {
+    "id": "Room id (raw). Note roomimage.roomId and roomorder.roomId are tokenised, so they do not join back to this id.",
+    "roomNo": "Room number; Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_roomimage": {
+   "description": "Room images (D2 Property & housing); only ids are copied.",
+   "key": "id",
+   "columns": {
+    "roomId": "UUID token of the room (namespace 'roomId') - does not join to room.id."
+   }
+  },
+  "silver.esukh_roomorder": {
+   "description": "Room orders / bookings (D2 Property & housing).",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18).",
+    "startDate": "Truncated to the hour.",
+    "endDate": "Truncated to the hour.",
+    "approvedDate": "Truncated to the hour.",
+    "regDate": "Truncated to the hour.",
+    "zahApartmentId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "hourString": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "orderDay": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "roomId": "UUID token of the room (namespace 'roomId'; rule: identifies a person, vehicle or dwelling) - does not join to room.id.",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_salesprocess": {
+   "description": "Sales processes (D6 Service & maintenance); parent of process via process.salesProcessId (declared FK).",
+   "key": "id",
+   "columns": {
+    "processId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_service": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "date",
+   "columns": {
+    "date": "Truncated to the hour.",
+    "stateBankId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_signuplog": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_statebalancedifference": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "checkedDate": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_statebankstatement": {
+   "description": "State bank statement transactions (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "txnDate",
+   "columns": {
+    "acntNo": "Bank account number. Withdrawn by the esukh team's 2026-10-08 column document and removed from bronze, but still present in silver.",
+    "journalNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "txnDate": "Truncated to the hour.",
+    "regUser": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "regDate": "Truncated to the hour.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_statepayment": {
+   "description": "State payment records per property (D3 Billing & payments); propertyId is a declared FK to property.",
+   "key": "id",
+   "time_column": "paymentDate",
+   "joins": [
+    "propertyId -> silver.esukh_property.id"
+   ],
+   "columns": {
+    "propertyId": "Property (declared FK -> property.id).",
+    "invoiceId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "paymentDate": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_staterawtransaction": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "silver.esukh_statesuberrors": {
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "createdAt": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_task": {
+   "description": "One row per task (үүрэг даалгавар) of a branch: status, source (complaint / internal work / general), category, due and completion dates and recurrence (DDL comments). Answers task volumes, backlog and completion times.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "categoryId -> silver.esukh_reference.id",
+    "parentTaskId -> silver.esukh_task.id",
+    "branchId -> silver.esukh_branch.id"
+   ],
+   "columns": {
+    "status": "0 = new, 1 = in progress, 2 = closed",
+    "branchId": "Branch id (Салбарын ID).",
+    "categoryId": "Task type (Төрөл); a reference id, same as complaint type (DDL comment).",
+    "sourceType": "Source (Эх үүсвэр): complaint = complaint (санал гомдол), internal_work = internal work (дотоод ажил), general = general (ерөнхий).",
+    "assignedTo": "DDL comment reads 'ID of the user who gave the task' (Үүрэг даалгавар өгсөн хэрэглэгчийн ID) although the name says assigned-to; passed through as a raw integer, not tokenised.",
+    "dueDate": "Due date (Дуусах хугацаа). Truncated to the hour.",
+    "completedDate": "Completion date (Дууссан огноо). Truncated to the hour.",
+    "isRecurring": "Whether the task recurs (Давтагдах эсэх).",
+    "recurrencePattern": "Recurrence schedule JSON (Давтагдах хуваарь: type daily/weekly/monthly/quarterly/yearly, interval, dayOfMonth, month). Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastRecurringDate": "Date of the last recurrence (Сүүлд давтагдсан огноо). Truncated to the hour.",
+    "parentTaskId": "Parent task id, for recurring tasks (Эцэг үүргийн ID).",
+    "isDeleted": "0 = active (идэвхтэй), 1 = deleted (устгасан).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "createdBy": "UUID token of the user who created the task (Үүсгэсэн хэрэглэгчийн ID; token namespace 'createdBy')."
+   }
+  },
+  "silver.esukh_taskassignment": {
+   "description": "One row per person attached to a task, with their role: assignee, reviewer or observer (DDL comments).",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "taskId -> silver.esukh_task.id"
+   ],
+   "columns": {
+    "taskId": "Task id (Үүрэг даалгаврын ID).",
+    "assignedBy": "ID of the user who assigned it (Үүрэг өгсөн хэрэглэгчийн ID); passed through as a raw integer, not tokenised.",
+    "role": "Person's role (Хүний үүрэг): assignee = performer (гүйцэтгэгч), reviewer = reviewer (хянагч), observer = observer (ажиглагч).",
+    "isDeleted": "0 = normal (хэвийн), 1 = deleted (устгасан).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "userId": "User id (Хэрэглэгчийн ID). Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed). Treatment not recorded in transform_rules - check before use."
+   }
+  },
+  "silver.esukh_taskattachment": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_taskhistory": {
+   "description": "Audit trail of task changes: one row per action on a task (created, updated, status_changed, assigned, ...) per the DDL enum.",
+   "key": "id",
+   "time_column": "createdAt",
+   "joins": [
+    "taskId -> silver.esukh_task.id"
+   ],
+   "columns": {
+    "taskId": "Task id (Үүрэг даалгаврын ID).",
+    "changedBy": "ID of the person who made the change (Өөрчлөлт хийсэн хүний ID); passed through as a raw integer, not tokenised.",
+    "action": "Action type (Үйлдлийн төрөл): created, updated, deleted, status_changed, assigned, unassigned, comment_added, attachment_added, due_date_changed, restored.",
+    "oldValue": "Old value (Хуучин утга), free text. Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "newValue": "New value (Шинэ утга), free text. Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "userAgent": "User agent of the change. Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_tdbpaylog": {
+   "description": "D3 Billing & payments table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "regDate"
+  },
+  "silver.esukh_town": {
+   "description": "Towns (D2 Property & housing); carries the same province/district/committee columns as branch (bug report). The source table also stores third-party bank credentials, which are not in the lake (source-fixes report).",
+   "key": "id",
+   "columns": {
+    "stateStartDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "journalNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastDownloadDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "townInvoiceMsg": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "remainMsg": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "akrel": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBranchNumber": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "khanBeginDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "showCost": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "pos3Approved": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "coordinate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "image": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_towncorporate": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "journalNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastSyncDate": "Truncated to the hour.",
+    "startSyncDate": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_townsealimage": {
+   "description": "D2 Property & housing table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id"
+  },
+  "silver.esukh_user": {
+   "description": "One row per esukh app user - every row is a person (claude.md G18). The 2026-10-08 document allows only id, branchId, getVatType, createdAt, updatedAt.",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "id": "User primary key. The rule tokenises it into the 'userId' namespace (G18), but silver still holds the raw integer source id until the pending in-place migration - it does not join to userId tokens.",
+    "familyCount": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "vatId": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "otpDate": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "lastLoggedDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastWalletLoggedDate": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "gender": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "externalId": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "khanWalletUserId": "UUID token (namespace 'khanWalletUserId', claude.md G18), not joinable to userId tokens. Withdrawn by the esukh team's 2026-10-08 column document; legacy values only."
+   }
+  },
+  "silver.esukh_userbarrier": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "startDate": "Truncated to the hour.",
+    "endDate": "Truncated to the hour.",
+    "regDate": "Truncated to the hour.",
+    "ortsNo": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18)."
+   }
+  },
+  "silver.esukh_usercouponlog": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_userlog": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources. Not on the 2026-10-08 allowlist: stale copy from an earlier load, no longer refreshed.",
+   "key": "id",
+   "time_column": "createdAt"
+  },
+  "silver.esukh_useropenbarrier": {
+   "description": "Barrier-open records linking users to barrier devices (declared FKs barrierId -> barrier, userId -> user); D1 in the schema analysis.",
+   "key": "id",
+   "time_column": "openedDate",
+   "joins": [
+    "barrierId -> silver.esukh_barrier.id"
+   ],
+   "columns": {
+    "barrierId": "Barrier device (declared FK -> barrier.id).",
+    "openedDate": "Truncated to the hour.",
+    "userId": "UUID token of the user (declared FK -> user.id in the source; token namespace 'userId')."
+   }
+  },
+  "silver.esukh_userproperty": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "userId": "UUID token of a user (person) (token namespace 'userId') - not a real id; joins only to other 'userId' tokens (G18).",
+    "workerId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_vat": {
+   "description": "VAT records (D3 Billing & payments).",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "regDate": "Truncated to the hour.",
+    "qrJson": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "suffix": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "branchBalanceId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "requestData": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_work": {
+   "description": "D6 Service & maintenance table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "startDate": "Truncated to the hour.",
+    "endDate": "Truncated to the hour.",
+    "regDate": "Truncated to the hour."
+   }
+  },
+  "silver.esukh_worker": {
+   "description": "One row per worker - every row is a person (claude.md G18); the DDL table comment reads 'хэрэглэгчийн сан' (user registry).",
+   "key": "id",
+   "time_column": "createdAt",
+   "columns": {
+    "id": "Worker primary key. The rule tokenises it into the 'workerId' namespace (G18), but silver still holds the raw integer source id until the pending in-place migration - it does not join to workerId tokens.",
+    "gender": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "rootId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "file": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "createdAt": "Truncated to the hour.",
+    "updatedAt": "Truncated to the hour.",
+    "externalId": "Withdrawn by the esukh team's 2026-10-08 column document; legacy values only.",
+    "oldWorkerId": "UUID token (namespace 'oldWorkerId', claude.md G18) - not a real id and not joinable to workerId tokens. Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "lastDeviceId": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed)."
+   }
+  },
+  "silver.esukh_workeraction": {
+   "description": "Links workers to actions (declared FKs workerId -> worker, actionId -> action).",
+   "key": "id",
+   "joins": [
+    "actionId -> silver.esukh_action.id"
+   ],
+   "columns": {
+    "actionId": "Action (declared FK -> action.id).",
+    "workerId": "UUID token of the worker (declared FK -> worker.id in the source; namespace 'workerId')."
+   }
+  },
+  "silver.esukh_workerapartment": {
+   "description": "D1 Identity & access table (domain in the name-based schema-analysis proposal of 2026-09-29); row meaning not documented in the sources.",
+   "key": "id",
+   "columns": {
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18)."
+   }
+  },
+  "silver.esukh_workerratingdetail": {
+   "description": "Per-criterion score (1-5) inside a worker rating (DDL comments): one row per rating x criterion.",
+   "key": "id",
+   "joins": [
+    "criteriaId -> silver.esukh_ratingcriteria.id"
+   ],
+   "columns": {
+    "criteriaId": "Criterion id (Үзүүлэлтийн ID) -> ratingcriteria.id.",
+    "score": "Score for the criterion, 1-5 (Үзүүлэлтийн оноо).",
+    "rateWorkerId": "UUID token (namespace 'rateWorkerId') - not a real id. Per the DDL comment the source value is the main rating id (Үндсэн үнэлгээний ID, i.e. rateworker.id), but it is tokenised as a person, so it cannot be joined back to rateworker."
+   }
+  },
+  "silver.esukh_wrongmail": {
+   "description": "Mail delivery failure records (D9 Logs, audit & integration); userId is a declared FK to user.",
+   "key": "id",
+   "time_column": "regDate",
+   "columns": {
+    "regDate": "Truncated to the hour.",
+    "fixedDate": "Truncated to the hour.",
+    "html": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "qrImage": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "filePath": "Not on the 2026-10-08 allowlist: values come from earlier loads only (no longer refreshed).",
+    "workerId": "UUID token of a worker (person) (token namespace 'workerId') - not a real id; joins only to other 'workerId' tokens (G18).",
+    "userId": "UUID token of the user (declared FK -> user.id in the source; namespace 'userId')."
+   }
+  },
+  "silver.esukh_userfeedback": {
+   "columns": {
+    "status": "OPEN / CLOSED",
+    "closedByType": "Who closed it: ADMIN or USER",
+    "tag": "Feedback category tag",
+    "userId": "UUID token of the user (count only)"
+   },
+   "description": "One row per feedback item a resident submitted (metadata only: tag, status, open/close times; the text is not loaded)"
+  }
+ }
+}

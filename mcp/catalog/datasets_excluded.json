@@ -1,0 +1,261 @@
+{
+ "myproperty_building": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "myproperty_invoice": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "myproperty_invoicepayment": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "myproperty_owner": {
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "myproperty_payment": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "myproperty_rentalagreement": {
+  "id": "row key - use the count metric",
+  "terminatedBy": "person reference stored without a token",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "myproperty_room": {
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "myproperty_tenant": {
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "parkly_park": {
+  "id": "row key - use the count metric",
+  "location": "quasi-identifier, location or device id",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "parkly_parkaccessconfig": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_aiinfos": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_auctionsubscriptionbills": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_cars": {
+  "markName": "identity",
+  "modelName": "identity",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_directoffers": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_iotsubscriptions": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_propertysalerents": {
+  "id": "row key - use the count metric",
+  "floor": "quasi-identifier, location or device id",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_smaerrors": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_useractionlogs": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_usercars": {
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "sma_users": {
+  "lastLogged": "quasi-identifier, location or device id",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "smartpay_card": {
+  "id": "row key - use the count metric",
+  "bankname": "identity",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "smartpay_invoice": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "smartpay_transaction": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "esukh_balance": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "esukh_monthlypayment": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "esukh_branch": {
+  "id": "row key - use the count metric",
+  "committee": "quasi-identifier, location or device id",
+  "canUserAddNews": "person reference stored without a token",
+  "autoApproveDay": "person reference stored without a token",
+  "canUserDeleteCar": "person reference stored without a token",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata",
+  "name": "identity",
+  "latinName": "identity",
+  "messageLimit": "free text",
+  "messageMultiply": "free text"
+ },
+ "esukh_property": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "esukh_userproperty": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata",
+  "isMessage": "free text"
+ },
+ "esukh_group": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "esukh_userbarrier": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "parkly_carconfig": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "plateNumber": "quasi-identifier, location or device id",
+  "_tokenised_at": "platform metadata"
+ },
+ "parkly_inrecord": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "plateNumber": "quasi-identifier, location or device id",
+  "_tokenised_at": "platform metadata"
+ },
+ "parkly_payments": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ },
+ "parkly_group": {
+  "id": "row key - use the count metric",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata",
+  "name": "identity"
+ },
+ "esukh_userfeedback": {
+  "id": "row key - use the count metric",
+  "complainId": "free text",
+  "_ingested_at": "platform metadata",
+  "_load_date": "platform metadata",
+  "_source": "platform metadata",
+  "_tokenised_at": "platform metadata"
+ }
+}

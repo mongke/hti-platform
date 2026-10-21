@@ -1,0 +1,6 @@
+source_system,source_table,exclusion_reason
+sma,NotificationAds,"correspondence table (policy 4.1.4), matched ['notification']"
+sma,Notifications,"correspondence table (policy 4.1.4), matched ['notification']"
+sma,Otps,"credential store (matched ['otp']) - exists to hold secrets; no analytical value, never copied"
+sma,userCarPostgre,"correspondence table (policy 4.1.4), matched ['post']"
+sma,userCarPostgres,"correspondence table (policy 4.1.4), matched ['post']"

@@ -1,0 +1,3 @@
+source_system,source_table,column,rule,justification,approved_by
+sma,Cars,markName,CT015,"CT015 matched the substring `name`. markName is the vehicle manufacturer (Toyota, Hyundai) - a manufacturer label shared by thousands of cars, not a person's name. KPI 26 groups registered cars by make.","HTI platform 2026-10-08, Алхам 1 of the KPI completion plan - PROVISIONAL until the data officer signs the purpose register"
+sma,Cars,modelName,CT015,"CT015 matched the substring `name`. modelName is the vehicle model (Prius, Sonata) - a model label, not a person's name. The identifying column on this table, plateNumber, is NOT in the allowlist.","HTI platform 2026-10-08, Алхам 1 of the KPI completion plan - PROVISIONAL until the data officer signs the purpose register"

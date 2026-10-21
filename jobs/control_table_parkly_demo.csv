@@ -1,0 +1,7 @@
+source_system,source_table,target_layer,load_mode,primary_key,watermark_column,columns_allowlist,purpose_ref
+parkly,PaymentOptions,bronze-ref,incremental,id,updatedAt,id|icon|active|show|prepaid|updatedAt|createdAt,DEMO-PARKLY-2026-09-30
+parkly,discounts,bronze-ref,incremental,id,updatedAt,id|type|value|main|updatedAt|createdAt,DEMO-PARKLY-2026-09-30
+parkly,accessTime,bronze-ref,incremental,id,updatedAt,id|parkId|hourType|createdAt|updatedAt,DEMO-PARKLY-2026-09-30
+parkly,parkAccessConfig,bronze-ref,incremental,id,updatedAt,id|parkId|permaCar|tempCar|permaLimit|tempLimit|createdAt|updatedAt,DEMO-PARKLY-2026-09-30
+parkly,parkFee,bronze-ref,incremental,id,updatedAt,id|branchId|parkId|groupId|validPeriod|updatedAt|createdAt,DEMO-PARKLY-2026-09-30
+parkly,branch_types,bronze-ref,incremental,id,updatedAt,id|updatedAt|createdAt,DEMO-PARKLY-2026-09-30

@@ -1,0 +1,28 @@
+# Log shipper for this server -> central Loki/Grafana (103.168.56.193), 2026-10-14.
+# Least privilege: no Docker socket (container logs come from journald), read-only
+# mounts, read-only root fs, no capabilities, only its own egress network.
+services:
+  promtail:
+    image: grafana/promtail@sha256:bf617e9d67e80247a59f717f9c1ad388d7d32dc0a1d29abd5799516d15e0a9b5   # 3.2.1, same as the other servers
+    container_name: hti-promtail
+    restart: unless-stopped
+    command: ["-config.file=/etc/promtail/promtail.yml"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    volumes:
+      - ./promtail.yml:/etc/promtail/promtail.yml:ro
+      - ./loki_push_password:/run/secrets/loki_push_password:ro
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - /home/developer/dbbackup/logs:/backup-logs:ro
+      - positions:/positions
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  positions:

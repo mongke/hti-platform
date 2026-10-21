@@ -1,0 +1,184 @@
+# =============================================================================
+# hti-platform/docker-compose.yml                    REWRITTEN (v2: local lake)
+#
+# Platform layers 1-2: local-filesystem Delta Lake on the encrypted disk +
+# single-node Spark + Spark Thrift Server (the JDBC endpoint dbt-spark uses).
+#
+# v2 changes vs v1:
+#   REMOVED  minio, minio-init services, minio-data volume, SPARK_S3_* env
+#            (MinIO community edition archived; Docker Hub / Quay images gone)
+#   ADDED    lake-init service (creates layer folders, fixes ownership)
+#   ADDED    LAKE_DIR bind mount at /lake in x-spark-common
+#
+# NOT in this file yet (separate pieces, in this order):
+#   - conf/spark-defaults.conf   (Delta extension, metastore, package pins) <- next
+#   - token-map Postgres + vault (separate instance, separate credentials)
+#   - serving Postgres for Power BI
+#   - Airflow, Open Metadata
+#
+# Before first `docker compose up`:
+#   1. cp .env.example .env ; set secrets ; chmod 600 .env
+#   2. set LAKE_DIR in .env to a directory on the ENCRYPTED disk that is
+#      EXCLUDED from this server's existing backup jobs (bronze holds PII)
+#   3. create conf/spark-defaults.conf (next piece) - a missing bind-mounted
+#      FILE makes Docker create a DIRECTORY of that name and Spark will not start
+#   4. mkdir -p jobs
+# =============================================================================
+
+name: hti-platform
+
+# ---- shared Spark definition (thrift server + ad-hoc jobs use the same image)
+x-spark-common: &spark-common
+  image: apache/spark:3.5.7                      # Spark 3.5.x <-> Delta 3.3.x
+  entrypoint: ["/opt/spark-entrypoint.sh"]        # ADDED (N1): writes hive-site.xml, then execs the image entrypoint
+  environment:
+    METASTORE_PASSWORD: ${METASTORE_PASSWORD}
+    SPARK_NO_DAEMONIZE: "true"                   # sbin scripts run in foreground
+    SPARK_LOG_DIR: /tmp/spark-logs               # image runs as non-root (uid 185)
+    SPARK_PID_DIR: /tmp
+    # ADDED (N3): source credentials for jobs/load_bronze.py, which reads
+    # <SYSTEM>_DB_{URL,USER,PASSWORD} from the environment and never from argv.
+    # URL and user are not secrets, so they default here and .env overrides them;
+    # the PASSWORD has no default and lives only in .env (chmod 600).
+    # Empty rather than :? on purpose - a missing password must not stop
+    # spark-thrift from starting. load_bronze.py refuses clearly on its own.
+    # Another source system (sma, parkly, myproperty) = three more lines here.
+    ESUKH_DB_URL: "${ESUKH_DB_URL:-jdbc:mysql://43.231.113.13:3306/esukh?sslMode=VERIFY_CA&requireSSL=true}"
+    ESUKH_DB_USER: "${ESUKH_DB_USER:-readuser}"
+    ESUKH_DB_PASSWORD: "${ESUKH_DB_PASSWORD:-}"
+    MYPROPERTY_DB_URL: "${MYPROPERTY_DB_URL:-jdbc:postgresql://pg-myproperty:5432/myproperty}"
+    MYPROPERTY_DB_USER: "${MYPROPERTY_DB_USER:-myproperty_reader}"
+    MYPROPERTY_DB_PASSWORD: "${MYPROPERTY_DB_PASSWORD:-}"
+    # Added 2026-10-04: phase-1 sources restored locally from the teams' dumps.
+    PARKLY_DB_URL: "${PARKLY_DB_URL:-jdbc:postgresql://pg-parkly:5432/parkly}"
+    PARKLY_DB_USER: "${PARKLY_DB_USER:-parkly_reader}"
+    PARKLY_DB_PASSWORD: "${PARKLY_DB_PASSWORD:-}"
+    SMARTPAY_DB_URL: "${SMARTPAY_DB_URL:-jdbc:postgresql://pg-smartpay:5432/smartpay_db}"
+    SMARTPAY_DB_USER: "${SMARTPAY_DB_USER:-smartpay_reader}"
+    SMARTPAY_DB_PASSWORD: "${SMARTPAY_DB_PASSWORD:-}"
+    SMA_DB_URL: "${SMA_DB_URL:-jdbc:mysql://mysql-sma:3306/sma_db}"
+    SMA_DB_USER: "${SMA_DB_USER:-sma_reader}"
+    SMA_DB_PASSWORD: "${SMA_DB_PASSWORD:-}"
+    # N4 token map. A SEPARATE instance with its own credentials - only this job
+    # may reach it; dbt, BI and humans have no route (policy section 4).
+    TOKENMAP_DB_URL: "${TOKENMAP_DB_URL:-jdbc:postgresql://hti-token-db:5432/tokenmap}"
+    TOKENMAP_DB_USER: "${TOKENMAP_DB_USER:-tokenise_job}"
+    TOKENMAP_DB_PASSWORD: "${TOKENMAP_DB_PASSWORD:-}"
+  volumes:
+    - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+    - ./conf/spark-entrypoint.sh:/opt/spark-entrypoint.sh:ro   # ADDED (N1)
+    - ./jobs:/opt/jobs:ro                        # loader / tokenize / vacuum jobs (later)
+    - ${LAKE_DIR}:/lake                          # the lake: /lake/{bronze,bronze-ref,silver,gold,warehouse}
+    - ivy-cache:/tmp/ivy                         # Maven downloads survive restarts
+  networks: [platform]
+  depends_on:
+    lake-init:
+      condition: service_completed_successfully
+    metastore-db:
+      condition: service_healthy
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # One-shot: creates the layer folders and hands them to the Spark image's
+  # user (uid/gid 185). bronze = PII, short-lived; bronze-ref = non-PII
+  # reference tables that may live longer. Expiry is enforced by the nightly
+  # vacuum job, not by the filesystem.
+  # ---------------------------------------------------------------------------
+  lake-init:
+    image: alpine:3.20
+    user: root
+    volumes:
+      - ${LAKE_DIR}:/lake
+      - ivy-cache:/ivy                          # ADDED: hand the Maven cache volume to uid 185 too
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        mkdir -p /lake/bronze /lake/bronze-ref /lake/silver /lake/gold /lake/warehouse
+        chown -R 185:185 /lake /ivy             # CHANGED: was "chown -R 185:185 /lake"
+        chmod 750 /lake /lake/bronze /lake/bronze-ref /lake/silver /lake/gold /lake/warehouse
+        echo "lake-init done: $(ls /lake | tr '\n' ' ')"
+  # ---------------------------------------------------------------------------
+  # Hive metastore backend: stores ONLY table names -> Delta locations, so the
+  # thrift server and spark-submit jobs share one catalog. Holds no data.
+  # This is NOT the token-map Postgres and NOT the serving Postgres.
+  # ---------------------------------------------------------------------------
+  metastore-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: metastore
+      POSTGRES_USER: metastore
+      POSTGRES_PASSWORD: ${METASTORE_PASSWORD}
+    volumes:
+      - metastore-data:/var/lib/postgresql/data
+      # ADDED (G8): Postgres runs this during volume init, BEFORE anything can
+      # connect, so the Hive schema always exists up front. Replaces
+      # DataNucleus' lazy autoCreateAll, which deadlocked against the first
+      # CREATE TABLE. Only runs on a fresh volume - `down -v` to re-seed.
+      - ./conf/metastore-schema.sql:/docker-entrypoint-initdb.d/metastore-schema.sql:ro
+    networks: [platform]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U metastore -d metastore"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Spark Thrift Server: JDBC endpoint on :10000 that dbt-spark talks to.
+  # Runs Spark in local[*] mode - single node, no cluster, right size for now.
+  # First start downloads the Maven packages listed in spark-defaults.conf
+  # (1-3 min); later starts use the ivy-cache volume.
+  # ---------------------------------------------------------------------------
+  spark-thrift:
+    <<: *spark-common
+    container_name: hti-spark-thrift
+    command:
+      - bash
+      - -c
+      - |
+        exec /opt/spark/sbin/start-thriftserver.sh \
+          --master "local[*]" \
+          --driver-memory "${THRIFT_DRIVER_MEMORY:-6g}" \
+          --hiveconf hive.server2.thrift.port=10000 \
+          --hiveconf hive.server2.thrift.bind.host=0.0.0.0
+    ports:
+      - "127.0.0.1:10000:10000"                  # dbt-spark (thrift); never expose publicly
+      - "127.0.0.1:4040:4040"                    # Spark UI
+    mem_limit: 4g                                 # 2026-10-14: was 8g (= whole host); heap 3g via THRIFT_DRIVER_MEMORY
+    # mcp_data (2026-10-14): private, internal-only link to the MCP server, so the MCP
+    # container needs no access to the platform network (databases) or the internet.
+    networks: [platform, mcp_data]
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/127.0.0.1/10000"]
+      interval: 30s
+      timeout: 5s
+      retries: 20
+      start_period: 240s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Ad-hoc / scheduled jobs (loader, tokenize, vacuum). Not started with `up`;
+  # invoked as:
+  #   docker compose run --rm spark-jobs spark-submit /opt/jobs/<job>.py
+  # CHANGED (N1): the password no longer goes on the command line - the
+  # entrypoint puts it in hive-site.xml before spark-submit is reached.
+  # Airflow will call this the same way later.
+  # ---------------------------------------------------------------------------
+  spark-jobs:
+    <<: *spark-common
+    profiles: [jobs]
+    command: ["bash", "-c", "echo 'run: docker compose run --rm spark-jobs spark-submit /opt/jobs/<job>.py'"]
+
+networks:
+  platform:
+    driver: bridge
+  mcp_data:
+    name: hti-mcp-data
+    internal: true        # no route to the host network or the internet
+
+volumes:
+  metastore-data:
+  ivy-cache:

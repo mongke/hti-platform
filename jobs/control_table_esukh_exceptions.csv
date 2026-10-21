@@ -1,0 +1,7 @@
+source_system,source_table,column,rule,justification,approved_by
+esukh,adminaccount,tokenVersion,CT018,"Token METADATA - a version counter used to invalidate sessions, not the token itself. CT018 matched the substring ""token""","HTI platform team 2026-10-02 (filter false positive, not a policy exemption); requested in Data preparation For Esukh.docx"
+esukh,branch,messageLimit,CT016,"Integer cap on SMS messages per period. Numeric configuration, not message content","HTI platform team 2026-10-02 (filter false positive, not a policy exemption); requested in Data preparation For Esukh.docx"
+esukh,branch,messageMultiply,CT016,"Numeric multiplier for SMS billing. Configuration, not message content","HTI platform team 2026-10-02 (filter false positive, not a policy exemption); requested in Data preparation For Esukh.docx"
+esukh,branch,logoImage,CT015,"Organisation logo file reference. Branding, not a photograph of a person","HTI platform team 2026-10-02 (filter false positive, not a policy exemption); requested in Data preparation For Esukh.docx"
+esukh,branch,bgImage,CT015,"App background image for the organisation. Branding, not a photograph of a person","HTI platform team 2026-10-02 (filter false positive, not a policy exemption); requested in Data preparation For Esukh.docx"
+esukh,branch,stampImage,CT015,Organisation stamp/seal image used on invoices. Not a photograph of a person,"HTI platform team 2026-10-02 (filter false positive, not a policy exemption); requested in Data preparation For Esukh.docx"

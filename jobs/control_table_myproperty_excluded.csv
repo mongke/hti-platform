@@ -1,0 +1,18 @@
+source_system,source_table,exclusion_reason
+myproperty,branchBuildingMessageFormat,"correspondence table (policy 4.1.4), matched ['message']"
+myproperty,branchMessageFormat,"correspondence table (policy 4.1.4), matched ['message']"
+myproperty,branchSupportVar,"correspondence table (policy 4.1.4), matched ['support']"
+myproperty,contractTemplate,ad-hoc / temp / duplicate-looking table - not a stable interface
+myproperty,ekontorCredential,"credential store (matched ['credential']) - exists to hold secrets; no analytical value, never copied"
+myproperty,helpRequest,"correspondence table (policy 4.1.4), matched ['help']"
+myproperty,message,"correspondence table (policy 4.1.4), matched ['message']"
+myproperty,news,"correspondence table (policy 4.1.4), matched ['news']"
+myproperty,newsRead,"correspondence table (policy 4.1.4), matched ['news']"
+myproperty,notification,"correspondence table (policy 4.1.4), matched ['notification']"
+myproperty,poll,"correspondence table (policy 4.1.4), matched ['poll']"
+myproperty,pollAnswer,"correspondence table (policy 4.1.4), matched ['answer', 'poll']"
+myproperty,pollOption,"correspondence table (policy 4.1.4), matched ['poll']"
+myproperty,pollQuestion,"correspondence table (policy 4.1.4), matched ['poll', 'question']"
+myproperty,pollResponse,"correspondence table (policy 4.1.4), matched ['poll']"
+myproperty,userNotification,"correspondence table (policy 4.1.4), matched ['notification']"
+myproperty,workerDeviceToken,"credential store (matched ['token']) - exists to hold secrets; no analytical value, never copied"

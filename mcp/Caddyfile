@@ -1,0 +1,39 @@
+# Public HTTPS front for the KPI MCP server. Caddy obtains and renews the Let's Encrypt
+# certificate automatically. Hardened 2026-10-14: TLS 1.2+, HSTS, no framing, request
+# body cap, only the MCP, OAuth, login and health paths are routed - everything else 404s.
+{
+  email isolutions9912@gmail.com
+  servers {
+    protocols h1 h2
+  }
+}
+datamgt.esukh.mn {
+  tls {
+    protocols tls1.2 tls1.3
+  }
+  encode zstd gzip
+  header {
+    defer                                  # apply after the upstream response, so ?defaults see it
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy no-referrer
+    -Server
+  }
+  log {
+    output stdout                          # -> journald -> central Loki
+    format json
+  }
+  request_body {
+    max_size 1MB
+  }
+  @mcp path /mcp /mcp/* /login /authorize /token /register /revoke /health /.well-known/*
+  handle @mcp {
+    reverse_proxy mcp-kpi:8765 {
+      header_up X-Forwarded-Proto https
+    }
+  }
+  handle {
+    respond 404
+  }
+}

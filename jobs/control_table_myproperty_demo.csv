@@ -1,0 +1,5 @@
+source_system,source_table,target_layer,load_mode,primary_key,watermark_column,columns_allowlist,purpose_ref
+myproperty,roomType,bronze-ref,incremental,id,updatedAt,id|code|color|order|status|createdAt|updatedAt,DEMO-MYPROPERTY-2026-09-30
+myproperty,service,bronze-ref,incremental,id,updatedAt,id|unit|order|defaultPrice|isMetered|createdAt|updatedAt|contractType,DEMO-MYPROPERTY-2026-09-30
+myproperty,capitalCategory,bronze-ref,incremental,id,updatedAt,id|createdAt|updatedAt,DEMO-MYPROPERTY-2026-09-30
+myproperty,servicePack,bronze-ref,incremental,id,updatedAt,id|branchId|isActive|createdAt|updatedAt|contractType|buildingId|rentPrice|depositAmount,DEMO-MYPROPERTY-2026-09-30

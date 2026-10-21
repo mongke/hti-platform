@@ -1,0 +1,603 @@
+{
+ "kpis": [
+  {
+   "id": 1,
+   "title": "Нийт хэрэглэгчийн тоо",
+   "status": "available",
+   "definition_mn": "Нийт хэрэглэгчийн тоо",
+   "definition_en": "Total number of registered Smart Mongol app users.",
+   "how_computed": "COUNT(*) of sma_users. Every registered user: sma.Users has no active/status column.",
+   "datasets": [
+    "sma_users"
+   ],
+   "caveat": "sma.Users loaded 2026-10-09. The table has no status/active column, so this is every registered user, not only active ones."
+  },
+  {
+   "id": 2,
+   "title": "Идэвхитэй хэрэглэгчийн тоо / хувь",
+   "status": "available",
+   "definition_mn": "Идэвхитэй хэрэглэгчийн тоо / хувь",
+   "definition_en": "Number and share of active users (users with any app activity in the period ÷ all registered users).",
+   "how_computed": "Distinct userId in sma_useractionlogs within the period ÷ COUNT(*) of sma_users.",
+   "datasets": [
+    "sma_useractionlogs",
+    "sma_users"
+   ],
+   "caveat": "Active = has an action log in the period; denominator is now the real registered-user count."
+  },
+  {
+   "id": 3,
+   "title": "Ямар ч алдаа гараагүй ашиглаж буй хэрэглэгчийн хувь",
+   "status": "available",
+   "definition_mn": "Ямар ч алдаа гараагүй ашиглаж буй хэрэглэгчийн хувь",
+   "definition_en": "Share of active users who hit no app error in the period.",
+   "how_computed": "Active users minus those with any row in sma_smaerrors in the period, ÷ active users.",
+   "datasets": [
+    "sma_smaerrors",
+    "sma_useractionlogs"
+   ]
+  },
+  {
+   "id": 4,
+   "title": "Шинэ хэрэглэгчийн тоо, өсөлт (өдөр/7 хоног/сар)",
+   "status": "available",
+   "definition_mn": "Шинэ хэрэглэгчийн тоо, өсөлтийн дүн өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "New user registrations, by day / week / month.",
+   "how_computed": "COUNT(*) of sma_users grouped by createdAt truncated to the grain.",
+   "datasets": [
+    "sma_users"
+   ],
+   "caveat": "sma.Users.createdAt is the real registration date (loaded 2026-10-09); this no longer approximates it with first appearance in a log."
+  },
+  {
+   "id": 5,
+   "title": "ДАН-гаар баталгаажсан хэрэглэгч",
+   "status": "available",
+   "definition_mn": "ДАН-гаар баталгаажсан хэрэглэгчийн тоо, өсөлтийн дүн өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "Users verified through DAN (the national e-ID), and its growth by day / week / month.",
+   "how_computed": "COUNT of sma_users by danVerifiedAt (DAN verification time) truncated to the grain.",
+   "datasets": [
+    "sma_users"
+   ],
+   "caveat": "Users whose DAN (national e-ID) verification time falls in each period (sma.Users.danVerifiedAt, loaded 2026-10-21, truncated to the hour). Users never verified are not counted."
+  },
+  {
+   "id": 6,
+   "title": "СӨХ-д бүртгэлгүй СМА хэрэглэгч",
+   "status": "unavailable",
+   "definition_mn": "СӨХ-д бүртгэлгүй СМА хэрэглэгчийн тоо, өсөлтийн дүн өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "SMA app users not registered with any apartment-owners association (СӨХ), and its growth.",
+   "missing_data": "cross-system link sma.Users <-> myproperty.tenant/owner (open decision: cross-system linking)"
+  },
+  {
+   "id": 7,
+   "title": "Нийт сууцны тоо (өсөлт)",
+   "status": "partial",
+   "definition_mn": "Нийт сууцны тоо, өсөлтийн дүн өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "Total number of apartments (units), and its growth by day / week / month.",
+   "datasets": [
+    "esukh_property"
+   ],
+   "caveat": "property.isDeleted defaults to 1 in esukh, so it is NOT used as a filter. Current totals only: esukh.property carries no creation date, so growth by day/week/month cannot be computed.",
+   "missing_data": "esukh.property creation date (for growth)"
+  },
+  {
+   "id": 8,
+   "title": "Сууц: хотхон ба талбайгаар",
+   "status": "partial",
+   "definition_mn": "Нийт сууцны тоо, хотхоны зэрэглэлээр болон талбайгаар (Үнэтэй, дундаж, хямд)",
+   "definition_en": "Apartments by complex grade (expensive / average / cheap) and by floor area.",
+   "datasets": [
+    "esukh_property"
+   ],
+   "caveat": "property.isDeleted defaults to 1 in esukh, so it is NOT used as a filter. Grouped by СӨХ (branchId) and floor-area band; no 'complex grade' (expensive/average/cheap) exists in any source.",
+   "missing_data": "a complex_grade reference list"
+  },
+  {
+   "id": 9,
+   "title": "Нийт гражийн тоо (өсөлт)",
+   "status": "partial",
+   "definition_mn": "Нийт гражийн тоо, өсөлтийн дүн өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "Total number of garages, and its growth by day / week / month.",
+   "datasets": [
+    "esukh_property"
+   ],
+   "caveat": "property.isDeleted defaults to 1 in esukh, so it is NOT used as a filter. Current totals only: esukh.property carries no creation date, so growth by day/week/month cannot be computed.",
+   "missing_data": "esukh.property creation date (for growth)"
+  },
+  {
+   "id": 10,
+   "title": "Граж: хотхон ба талбайгаар",
+   "status": "partial",
+   "definition_mn": "Нийт гражийн тоо, хотхоны зэрэглэлээр болон талбайгаар (Үнэтэй, дундаж, хямд)",
+   "definition_en": "Garages by complex grade (expensive / average / cheap) and by floor area.",
+   "datasets": [
+    "esukh_property"
+   ],
+   "caveat": "property.isDeleted defaults to 1 in esukh, so it is NOT used as a filter. Grouped by СӨХ (branchId) and floor-area band; no 'complex grade' (expensive/average/cheap) exists in any source.",
+   "missing_data": "a complex_grade reference list"
+  },
+  {
+   "id": 11,
+   "title": "Нийт агуулахын тоо (өсөлт)",
+   "status": "partial",
+   "definition_mn": "Нийт агуулахын тоо, өсөлтийн дүн өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "Total number of storage units (агуулах), and its growth by day / week / month.",
+   "datasets": [
+    "esukh_property"
+   ],
+   "caveat": "property.isDeleted defaults to 1 in esukh, so it is NOT used as a filter. Current totals only: esukh.property carries no creation date, so growth by day/week/month cannot be computed.",
+   "missing_data": "esukh.property creation date (for growth)"
+  },
+  {
+   "id": 12,
+   "title": "Агуулах: хотхон ба талбайгаар",
+   "status": "partial",
+   "definition_mn": "Нийт агуулахын тоо, хотхоны зэрэглэлээр болон талбайгаар (Үнэтэй, дундаж, хямд)",
+   "definition_en": "Storage units by complex grade (expensive / average / cheap) and by floor area.",
+   "datasets": [
+    "esukh_property"
+   ],
+   "caveat": "property.isDeleted defaults to 1 in esukh, so it is NOT used as a filter. Grouped by СӨХ (branchId) and floor-area band; no 'complex grade' (expensive/average/cheap) exists in any source.",
+   "missing_data": "a complex_grade reference list"
+  },
+  {
+   "id": 13,
+   "title": "Нийт үүссэн нэхэмжлэхийн тоо / дүн / дундаж",
+   "status": "available",
+   "definition_mn": "Нийт үүссэн нэхэмжлэхийн тоо / дүн / дундаж",
+   "definition_en": "Invoices issued: count, total amount and average amount.",
+   "datasets": [
+    "esukh_balance",
+    "myproperty_invoice"
+   ],
+   "caveat": "esukh: one invoice = one balance row with cost > 0, by invoiceMonth. myproperty: one invoice row by issueDate. Shown per system - never added together."
+  },
+  {
+   "id": 14,
+   "title": "Нэхэмжлэхийн насжилт (1/3/6 сарын дотор төлөгдсөн)",
+   "status": "available",
+   "definition_mn": "Нийт нэхэмжлэхийн насжилт, 1 сарын дотор төлөгдсөн, 3 сарын дотор төлөгдсөн, 6 сарын дотор төлөгдсөн",
+   "definition_en": "Invoice ageing: share paid within 1, 3 and 6 months of issue.",
+   "how_computed": "First payment date per invoice (invoicepayment → payment.paymentDate) minus issueDate, bucketed ≤30 / ≤90 / ≤180 days; unpaid counted separately.",
+   "datasets": [
+    "myproperty_invoice",
+    "myproperty_invoicepayment",
+    "myproperty_payment"
+   ]
+  },
+  {
+   "id": 15,
+   "title": "СМА хэрэглэгч өөрөө үүсгэсэн нэхэмжлэх",
+   "status": "partial",
+   "definition_mn": "СМА хэрэглэгч өөрөө үүсгэсэн нэхэмжлэхийн тоо / дүн / дундаж",
+   "definition_en": "Invoices created by SMA users themselves: count, total and average amount.",
+   "how_computed": "myproperty_invoice by type and payerType. Which value means 'created by the SMA user' is not yet confirmed.",
+   "datasets": [
+    "myproperty_invoice"
+   ],
+   "caveat": "Breakdown by invoice type/payer;"
+  },
+  {
+   "id": 16,
+   "title": "Смарт Монгол апп-р төлсөн нэхэмжлэх",
+   "status": "partial",
+   "definition_mn": "Смарт Монгол апп-р төлсөн нэхэмжлэхийн тоо / дүн / дундаж",
+   "definition_en": "Invoices paid through the Smart Mongol app: count, total and average amount.",
+   "how_computed": "myproperty_payment by method. Which method value is the app is not yet confirmed.",
+   "datasets": [
+    "myproperty_payment"
+   ],
+   "caveat": "Grouped by payment.method;"
+  },
+  {
+   "id": 17,
+   "title": "Авто төлөлт тохиргоотой хэрэглэгч",
+   "status": "unavailable",
+   "definition_mn": "Смарт Монгол апп дээр Нэхэмжлэхийн авто төлөлт тохиргоотой хэрэглэгчийн тоо",
+   "definition_en": "Users who set up invoice auto-pay in the Smart Mongol app.",
+   "missing_data": "an auto-pay settings table"
+  },
+  {
+   "id": 18,
+   "title": "Апп-р төлсөн нэхэмжлэхийн насжилт",
+   "status": "partial",
+   "definition_mn": "Смарт Монгол апп-р төлсөн нэхэмжлэхийн насжилт, 1 сарын дотор төлөгдсөн, 3 сарын дотор төлөгдсөн, 6 сарын дотор төлөгдсөн",
+   "definition_en": "Ageing of invoices paid through the app: paid within 1, 3 and 6 months.",
+   "datasets": [
+    "myproperty_invoice",
+    "myproperty_invoicepayment",
+    "myproperty_payment"
+   ]
+  },
+  {
+   "id": 19,
+   "title": "Түрээслэгчийн тоо, өсөлт",
+   "status": "available",
+   "definition_mn": "Түрээслэгчийн тоо, өсөлтийн дүн өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "Number of tenants, and its growth by day / week / month.",
+   "how_computed": "New myproperty_tenant rows by createdAt and grain.",
+   "datasets": [
+    "myproperty_tenant"
+   ]
+  },
+  {
+   "id": 20,
+   "title": "Түрээслэгчийн шилжилтийн загвар",
+   "status": "unavailable",
+   "definition_mn": "Түрээслэгчийн шилжилтийн загвар (1 сууц, 1 гражийг ямар хугацаагаар түрээслэдэг, дараа нь өмчлөгч болдог уу? Эсвэл өөр байранд түрээслэгч болдог уу?)",
+   "definition_en": "Tenant movement pattern: how long a unit/garage is rented, and whether tenants later become owners or rent elsewhere.",
+   "how_computed": "Average rental length from myproperty_rentalagreement; tenants who also appear as owners (same userId token); rooms per tenant.",
+   "caveat": "Was 'available' until 2026-10-21 and returned averages over n=2.",
+   "missing_data": "myproperty.rentalAgreement holds only 2 agreements (2026-10-21) - too few for any pattern;"
+  },
+  {
+   "id": 21,
+   "title": "Өмчлөгч өөрчлөгдсөн тохиолдлын тоо",
+   "status": "unavailable",
+   "definition_mn": "Өмчлөгч өөрчлөгдсөн тохиолдлын тоо, өдрөөр / 7 хоногоор / сараар",
+   "definition_en": "Number of ownership changes, by day / week / month.",
+   "missing_data": "myproperty.ownerHistory.createdAt"
+  },
+  {
+   "id": 22,
+   "title": "Шинэ өмчлөгчийн загвар",
+   "status": "unavailable",
+   "definition_mn": "Шинэ өмчлөгчийн загвар (өмнө нь аль хотхонд, хэдэн өрөөнд амьдарч байсан)",
+   "definition_en": "New-owner profile: which complex and how many rooms they lived in before.",
+   "missing_data": "ownerHistory timestamps + room link"
+  },
+  {
+   "id": 23,
+   "title": "Хуучин өмчлөгчийн загвар",
+   "status": "unavailable",
+   "definition_mn": "Хуучин өмчлөгчийн загвар (аль хотхонд бүртгэгдсэн)",
+   "definition_en": "Previous-owner profile: which complex they were registered in.",
+   "missing_data": "ownerHistory timestamps"
+  },
+  {
+   "id": 24,
+   "title": "Түр нэвтрэх зөвшөөрөлтэй / нэвтэрсэн хэрэглэгч",
+   "status": "unavailable",
+   "definition_mn": "Хотхонд түр нэвтрэхээр зөвшөөрөгдсөн хэрэглэгчийн тоо / түр нэвтэрсэн хэрэглэгчийн тоо",
+   "definition_en": "Users granted temporary entry to a complex / users who actually entered temporarily.",
+   "missing_data": "parkly guest/visitor access tables (not in the 27 'Normal' tables)"
+  },
+  {
+   "id": 25,
+   "title": "Түр нэвтрэх эрх олгосон / түр нэвтэрсэн автомашин",
+   "status": "available",
+   "definition_mn": "Хотхонд түр нэвтрэхээр зөвшөөрөгдсөн автомашины тоо / түр нэвтэрсэн автомашины тоо",
+   "definition_en": "Cars granted temporary entry to a complex / cars that actually entered temporarily.",
+   "datasets": [
+    "parkly_carconfig",
+    "parkly_group",
+    "parkly_inrecord"
+   ],
+   "caveat": "Temporary = parkly access group 'Зочин' (guest). Granted = distinct cars given a guest registration (carConfig) in the period; entered = distinct cars whose entry (inRecord) used a guest registration."
+  },
+  {
+   "id": 26,
+   "title": "Нийт бүртгэгдсэн автомашин",
+   "status": "available",
+   "definition_mn": "Нийт бүртгэгдсэн автомашины тоо / насжилтаар / марк-загвараар",
+   "definition_en": "Total registered cars, by age and by make/model.",
+   "how_computed": "sma_usercars joined to sma_cars: cars, distinct owners, average age from buildYear, distinct makes.",
+   "datasets": [
+    "sma_cars",
+    "sma_usercars"
+   ],
+   "caveat": "sma.Cars loaded 2026-10-09 WITHOUT plateNumber;"
+  },
+  {
+   "id": 27,
+   "title": "Жолоочийн хариуцлагын даатгалтай автомашин",
+   "status": "unavailable",
+   "definition_mn": "Жолоочийн хариуцлагын даатгалд хамрагдсан автомашины тоо / шимтгэлийн орлого",
+   "definition_en": "Cars with driver liability insurance, and the premium income.",
+   "missing_data": "an insurance table"
+  },
+  {
+   "id": 28,
+   "title": "Тээврийн хэрэгслийн даатгалтай автомашин",
+   "status": "unavailable",
+   "definition_mn": "Тээврийн хэрэгслийн даатгалд хамрагдсан автомашины тоо / шимтгэлийн орлого",
+   "definition_en": "Cars with vehicle insurance, and the premium income.",
+   "missing_data": "an insurance table"
+  },
+  {
+   "id": 29,
+   "title": "Байнгын нэвтрэх эрхтэй автомашин / багтаамж",
+   "status": "available",
+   "definition_mn": "Хотхонд байнгынаар нэвтрэх эрхтэй автомашины тоо ба хотхоны багтаамжийн харьцаа",
+   "definition_en": "Cars with permanent entry rights to a complex, as a ratio of the complex's parking capacity.",
+   "datasets": [
+    "parkly_carconfig",
+    "parkly_group",
+    "parkly_park"
+   ],
+   "caveat": "Permanent right = an active, unexpired parkly.carConfig in an access group of type 'main' other than 'Зочин' (guest): Оршин суугч, Байгууллага, Ажилтан, Оюутан, Захирал, Гэрээт (groupId -> parkly.group, confirmed by the platform owner 2026-10-21). Service vehicles (special) and guests are excluded.…"
+  },
+  {
+   "id": 30,
+   "title": "Гражид бүртгэгдсэн автомашин / гражийн тоо",
+   "status": "unavailable",
+   "definition_mn": "Гражид байнгынаар бүртгэгдсэн автомашины тоо ба гражийн тооны харьцаа",
+   "definition_en": "Cars permanently registered to a garage, as a ratio of the number of garages.",
+   "missing_data": "garage<->car registration"
+  },
+  {
+   "id": 31,
+   "title": "Эд хөрөнгийн даатгалтай сууц/граж/агуулах",
+   "status": "unavailable",
+   "definition_mn": "Эд хөрөнгийн даатгалд хамрагдсан сууц, граж, агуулахын тоо / шимтгэлийн орлого",
+   "definition_en": "Apartments, garages and storage units with property insurance, and the premium income.",
+   "missing_data": "an insurance table"
+  },
+  {
+   "id": 32,
+   "title": "Төлбөртэй AI туслах идэвхижүүлсэн хэрэглэгч",
+   "status": "partial",
+   "definition_mn": "Төлбөртэй AI туслах идэвхижүүлсэн хэрэглэгчийн тоо",
+   "definition_en": "Users who activated the paid AI assistant.",
+   "how_computed": "Distinct userId in sma_aiinfos. Cannot yet tell paid from free.",
+   "datasets": [
+    "sma_aiinfos"
+   ],
+   "caveat": "Users with an AI assistant profile; 'paid' needs the subscription product mapping (sma_subscriptionbills.priceInfoId -> product)."
+  },
+  {
+   "id": 33,
+   "title": "AI хүсэлтийн амжилтын хувь",
+   "status": "unavailable",
+   "definition_mn": "AI туслахад ирсэн хүсэлтүүдээс амжилттай гүйцэтгэсэн хувь",
+   "definition_en": "Share of AI assistant requests completed successfully.",
+   "missing_data": "an AI request log with outcome"
+  },
+  {
+   "id": 34,
+   "title": "AI зардал / орлого",
+   "status": "unavailable",
+   "definition_mn": "AI зардал ба орлогын харьцаа",
+   "definition_en": "AI cost to AI revenue ratio.",
+   "missing_data": "AI cost data (not in any database)"
+  },
+  {
+   "id": 35,
+   "title": "Онлайн үйлчилгээ: хэрэглэгч / шимтгэл / гүйлгээ",
+   "status": "partial",
+   "definition_mn": "Онлайн үйлчилгээ авсан хэрэглэгчийн тоо / шимтгэлийн орлого / нийт гүйлгээний дүн",
+   "definition_en": "Online services: users served, fee income and total transaction amount.",
+   "how_computed": "Paid smartpay_invoice rows by productPaymentType: distinct users, count, totalAmount, feeAmount.",
+   "datasets": [
+    "smartpay_invoice"
+   ],
+   "caveat": "SmartPay invoices by product payment type; which types are 'online services' vs 'online shop' must be confirmed."
+  },
+  {
+   "id": 36,
+   "title": "Онлайн дэлгүүр: хэрэглэгч / шимтгэл / гүйлгээ",
+   "status": "partial",
+   "definition_mn": "Онлайн дэлгүүрээр үйлчлүүлсэн хэрэглэгчийн тоо / шимтгэлийн орлого / нийт гүйлгээний дүн",
+   "definition_en": "Online shop: users served, fee income and total transaction amount."
+  },
+  {
+   "id": 37,
+   "title": "Үл хөдлөх түрээсийн зарын тоо, хотхоноор",
+   "status": "partial",
+   "definition_mn": "Үл хөдлөх хөрөнгө түрээслэх зарын тоо, хотхоны зэрэглэлээр",
+   "definition_en": "Real-estate rental listings, by complex grade.",
+   "how_computed": "sma_propertysalerents by type, propertyType, townId and stage: count and average price.",
+   "datasets": [
+    "sma_propertysalerents"
+   ],
+   "caveat": "Grouped by town, not 'complex grade' (no such field)."
+  },
+  {
+   "id": 38,
+   "title": "Түрээсийн зуучлалын шимтгэлийн орлого",
+   "status": "partial",
+   "definition_mn": "Үл хөдлөх түрээсийн зуучлалын шимтгэлийн орлого",
+   "definition_en": "Rental brokerage fee income.",
+   "how_computed": "Paid sma_directoffers (by paidAt) plus paid sma_auctionsubscriptionbills (by createdAt): counts and income.",
+   "datasets": [
+    "sma_auctionsubscriptionbills",
+    "sma_directoffers"
+   ],
+   "caveat": "Direct-offer payments plus paid auction subscription bills;"
+  },
+  {
+   "id": 39,
+   "title": "Идэвхижүүлсэн релейний шимтгэлийн орлого",
+   "status": "partial",
+   "definition_mn": "Идэвхижүүлсэн релейний шимтгэлийн орлого",
+   "definition_en": "Fee income from activated relays (IoT gate/door relays).",
+   "how_computed": "sma_iotsubscriptions by createdAt: count, distinct users, SUM(price). Payment status is not available.",
+   "datasets": [
+    "sma_iotsubscriptions"
+   ],
+   "caveat": "IoT (relay) subscriptions by creation date;"
+  },
+  {
+   "id": 40,
+   "title": "Багцалсан төлбөрийн шимтгэлийн орлого",
+   "status": "partial",
+   "definition_mn": "Багцалсан төлбөрийн шимтгэлийн орлого",
+   "definition_en": "Fee income from bundled payments.",
+   "how_computed": "smartpay_transaction by type: amount, spayFee, xpayFee. Which type is 'bundled' is not yet confirmed.",
+   "datasets": [
+    "smartpay_transaction"
+   ],
+   "caveat": "All SmartPay transaction fees by type; the 'bundled' type must be confirmed."
+  },
+  {
+   "id": 41,
+   "title": "Илгээсэн OTP мессэжний тоо",
+   "status": "available",
+   "definition_mn": "Илгээсэн OTP мессэжний тоо, өдрөөр, сараар",
+   "definition_en": "OTP SMS messages sent, by day and month.",
+   "how_computed": "Daily OTPs created = difference of the sma.Otps id counter between consecutive nightly snapshots, summed per period; only the counter is read, never an OTP, code or phone number.",
+   "caveat": "No OTP row, code or phone number is read. History starts 2026-10-10."
+  },
+  {
+   "id": 42,
+   "title": "Эрх хязгаарлагдсан хэрэглэгч, өрийн дүн, насжилт",
+   "status": "partial",
+   "definition_mn": "Нэвтрэх эрх хязгаарлагдсан хэрэглэгчийн тоо, өрийн дүн, өрийн насжилт",
+   "definition_en": "Users with restricted access, their debt amount and debt ageing.",
+   "datasets": [
+    "esukh_balance"
+   ],
+   "caveat": "Debt = the LATEST balance row's paymentBalance per property; age = debt / the property's average monthly invoice over the last 12 months. Access restriction cannot be shown: esukh.blackListProperty has 0 rows.",
+   "missing_data": "esukh.blackListProperty records (restricted access)"
+  },
+  {
+   "id": 43,
+   "title": "Эрх хязгаарласнаар төлөгдсөн өрийн хувь",
+   "status": "unavailable",
+   "definition_mn": "Нэвтрэх эрх хязгаарласнаар төлөгдсөн өрийн нийт дүнд эзлэх хувь",
+   "definition_en": "Debt paid because access was restricted, as a share of total debt."
+  },
+  {
+   "id": 44,
+   "title": "Санал хүсэлт өгсөн хэрэглэгч (өдрөөр)",
+   "status": "available",
+   "definition_mn": "Санал хүсэлт ирүүлсэн хэрэглэгчийн тоо, өдрөөр",
+   "definition_en": "Users who submitted feedback, by day.",
+   "datasets": [
+    "esukh_userfeedback"
+   ],
+   "caveat": "esukh.userFeedback (metadata only - the feedback text is never loaded)."
+  },
+  {
+   "id": 45,
+   "title": "Санал хүсэлтийн шийдвэрлэлтийн хувь (өдрөөр)",
+   "status": "available",
+   "definition_mn": "Санал хүсэлт шийдвэрлэлтийн хувь, өдрөөр",
+   "definition_en": "Feedback resolution rate, by day.",
+   "datasets": [
+    "esukh_userfeedback"
+   ],
+   "caveat": "Closed = status CLOSED (by an admin or by the user). By the period the feedback was created."
+  },
+  {
+   "id": 46,
+   "title": "Апп алдааны мэдээллийн тоо",
+   "status": "available",
+   "definition_mn": "Апп алдааны мэдээллийн тоо",
+   "definition_en": "Number of app error reports.",
+   "how_computed": "sma_smaerrors by createdAt: errors and distinct users affected.",
+   "datasets": [
+    "sma_smaerrors"
+   ]
+  },
+  {
+   "id": 47,
+   "title": "Серверийн уналт / зогссон цаг",
+   "status": "available",
+   "definition_mn": "Серверийн уналтын тоо / зогссон цаг",
+   "definition_en": "Server outages and downtime hours.",
+   "how_computed": "Minutes per day each server was unreachable, from central monitoring (Prometheus up of every server); summed to hours per period.",
+   "caveat": "Action 7.1 (2026-10-14): from the central Prometheus, minutes per Ulaanbaatar day each server's node exporter was unreachable. Prometheus keeps 30 days; history is kept from 2026-09-14 on."
+  },
+  {
+   "id": 48,
+   "title": "Нийт групп / хэрэглэгчийн үүсгэсэн групп",
+   "status": "partial",
+   "definition_mn": "Нийт группын тоо / хэрэглэгчийн үүсгэсэн группын тоо",
+   "definition_en": "Total groups / groups created by users.",
+   "datasets": [
+    "esukh_group"
+   ],
+   "caveat": "esukh.group (PUBLIC / PRIVATE)."
+  },
+  {
+   "id": 49,
+   "title": "Идэвхтэй групп",
+   "status": "partial",
+   "definition_mn": "Идэвхитэй группын тоо",
+   "definition_en": "Active groups.",
+   "datasets": [
+    "esukh_group"
+   ],
+   "caveat": "Active = a group changed (updatedAt) in the period; esukh.group has no activity log."
+  },
+  {
+   "id": 50,
+   "title": "Групп доторх нэхэмжлэх",
+   "status": "unavailable",
+   "definition_mn": "Групп дотроо нэхэмжлэх үүсгэж буй тоо / нэхэмжлэхийн дүн",
+   "definition_en": "Invoices created inside groups: count and amount.",
+   "missing_data": "group tables"
+  },
+  {
+   "id": 51,
+   "title": "Төлбөрийн картаа холбосон хэрэглэгч",
+   "status": "available",
+   "definition_mn": "Төлбөрийн картаа холбосон хэрэглэгчийн тоо",
+   "definition_en": "Users who linked a payment card.",
+   "how_computed": "smartpay_card: distinct userId, cards, approved cards.",
+   "datasets": [
+    "smartpay_card"
+   ]
+  },
+  {
+   "id": 52,
+   "title": "Зогсоолын төлбөрөө төлсөн хэрэглэгч",
+   "status": "partial",
+   "definition_mn": "Зогсоолын төлбөрөө төлсөн хэрэглэгчийн тоо",
+   "definition_en": "Users who paid their parking fee.",
+   "how_computed": "Distinct cars with a successful 'paid' parking payment per month, aggregated inside the parkly database (groups under 5 cars blanked).",
+   "caveat": "Aggregate-only (action 5.1, 2026-10-14): computed inside the parkly database, no payment row leaves it; groups under 5 cars are blanked. The payer is a car (parkly has no user on a payment), so this counts distinct cars that paid, per month. Counts payment_type 'paid' with success;"
+  },
+  {
+   "id": 53,
+   "title": "Лояалти оноо үүсгэсэн бизнес",
+   "status": "unavailable",
+   "definition_mn": "Лояалти оноо үүсгэсэн бизнесийн тоо",
+   "definition_en": "Businesses that issued loyalty points.",
+   "missing_data": "loyalty tables"
+  },
+  {
+   "id": 54,
+   "title": "Лояалти онооны нийлбэр",
+   "status": "unavailable",
+   "definition_mn": "Лояалти онооны нийлбэр",
+   "definition_en": "Total loyalty points.",
+   "missing_data": "loyalty tables"
+  },
+  {
+   "id": 55,
+   "title": "Лояалти QR үүсгэсэн хэрэглэгч",
+   "status": "unavailable",
+   "definition_mn": "Лояалти QR үүсгэсэн хэрэглэгчийн тоо",
+   "definition_en": "Users who generated a loyalty QR code.",
+   "missing_data": "loyalty tables"
+  },
+  {
+   "id": 56,
+   "title": "Лояалти QR-аар нэвтэрсэн тохиолдол",
+   "status": "unavailable",
+   "definition_mn": "Лояалти QR ашиглан барилгад нэвтэрсэн тохиолдлын тоо / хэрэглэгчийн тоо",
+   "definition_en": "Building entries via loyalty QR: number of entries / number of users.",
+   "missing_data": "loyalty tables"
+  },
+  {
+   "id": 57,
+   "title": "API latency",
+   "status": "available",
+   "definition_mn": "API latency буюу API хурдын түвшин",
+   "definition_en": "API latency (response speed).",
+   "how_computed": "Response time of the public endpoints from blackbox HTTP probes every minute: average, 95th percentile and success rate per day.",
+   "caveat": "Action 7.2 (2026-10-14): blackbox HTTP probes every minute from the central monitoring server to the public endpoints (api.esukh.mn, spay.esukh.mn, sites, MCP). Response time as a user sees it, not server-side processing time. Data from 2026-10-15; the sma app API URL is not probed yet."
+  },
+  {
+   "id": 58,
+   "title": "AppStore / PlayStore үнэлгээ",
+   "status": "unavailable",
+   "definition_mn": "AppStore, PlayStore дээрх хэрэглэгчийн үнэлгээ",
+   "definition_en": "User ratings on the App Store and Play Store.",
+   "missing_data": "store consoles, not a database"
+  }
+ ]
+}

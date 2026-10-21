@@ -1,0 +1,4 @@
+source_system,source_table,target_layer,load_mode,primary_key,watermark_column,columns_allowlist,purpose_ref
+sma,NotifyOns,bronze-ref,incremental,id,updatedAt,id|userId|notifyType|subType|enabled|createdAt|updatedAt,DEMO-SMA-2026-09-30
+sma,IotSubscriptions,bronze-ref,incremental,id,updatedAt,id|priceInfoId|price|startDate|endDate|quota|userId|createdAt|updatedAt|priceInfoMethodId|vatInfo,DEMO-SMA-2026-09-30
+sma,SubscriptionBills,bronze-ref,incremental,id,updatedAt,id|priceInfoMethodId|price|status|userId|priceInfoId|createdAt|updatedAt|methodType|quota|vatType,DEMO-SMA-2026-09-30

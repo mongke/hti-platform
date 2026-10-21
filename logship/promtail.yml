@@ -1,0 +1,53 @@
+# Ships this server's security-relevant logs to the central Loki (2026-10-14).
+# Push goes over HTTPS with basic auth to grafana.esukh.mn (push-only endpoint);
+# the Loki port itself is firewalled on the central server.
+server:
+  disable: true                 # no HTTP listener: nothing to expose
+positions:
+  filename: /positions/positions.yaml
+clients:
+  - url: https://grafana.esukh.mn/loki/api/v1/push
+    basic_auth:
+      username: hti-platform
+      password_file: /run/secrets/loki_push_password
+    external_labels:
+      server: hti_platform
+scrape_configs:
+  # Container logs of the public MCP stack, via journald (no Docker socket needed).
+  - job_name: docker
+    journal:
+      path: /var/log/journal
+      max_age: 12h
+      labels:
+        job: docker
+    relabel_configs:
+      - source_labels: [__journal_container_name]
+        regex: (hti-mcp-kpi|hti-caddy)
+        action: keep
+      - source_labels: [__journal_container_name]
+        target_label: container_name
+    pipeline_stages:
+      # MCP audit lines: tool and outcome as labels (small, fixed sets) for alerting.
+      - regex:
+          expression: 'audit client=(?P<client>\S+) tool=(?P<tool>\S+) outcome=(?P<outcome>\S+)'
+      - labels:
+          tool:
+          outcome:
+      - regex:
+          expression: 'tool manifest sha256=(?P<manifest>\w+)'
+      - labels:
+          manifest:
+  # Nightly backup/restore chain (pull, restore, DAG trigger).
+  - job_name: dbbackup
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: dbbackup
+          __path__: /backup-logs/nightly_*.log
+    pipeline_stages:
+      # Use the time written in the line, not the time promtail read it.
+      - regex:
+          expression: '^(?:===== )?(?P<ts>\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)'
+      - timestamp:
+          source: ts
+          format: RFC3339

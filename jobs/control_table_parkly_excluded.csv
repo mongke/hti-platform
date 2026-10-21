@@ -1,0 +1,40 @@
+source_system,source_table,exclusion_reason
+parkly,branch,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,camera_request_queue,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,car,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,carConfigExternalInfo,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,childParkHistory,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,conflict_exit_log,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,delivery_payment,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,delivery_usage,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,delivery_vehicle,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,esukhInfo,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,inLog,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,inOutHistory,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,logger,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,merchant,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,overtime_payment,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,paidInfo,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,parkLocation,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,requests,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,rightNowCamera,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,right_now_camera_history,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,signupRequest,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,system_admin,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,vatInfo,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,worker,classified RED by the parkly team (parkly-postgresql-tables-hti-privacy.pdf 2026-10-02)
+parkly,camera_template,ad-hoc / temp / duplicate-looking table - not a stable interface
+parkly,feedback_assignment_durations,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_board_columns,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_comment_attachments,"correspondence table (policy 4.1.4), matched ['comment', 'feedback']"
+parkly,feedback_comments,"correspondence table (policy 4.1.4), matched ['comment', 'feedback']"
+parkly,feedback_customer_contacts,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_customer_organizations,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_employees,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_issue_assignees,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_issue_collaborators,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_issue_histories,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_issues,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,feedback_status_durations,"correspondence table (policy 4.1.4), matched ['feedback']"
+parkly,models,"columns collide case-insensitively ['workerid'] - legal in Postgres, impossible in Spark/Delta which is case-insensitive by default; needs a source-schema fix"
+parkly,tableName,ad-hoc / temp / duplicate-looking table - not a stable interface
