@@ -26,6 +26,17 @@ names the client and the site the code goes to. Sign in only if you started it.
 **Claude Code** — `claude mcp add --transport http hti-kpi https://datamgt.esukh.mn/mcp`
 (OAuth in the browser; loopback redirect URIs are allowed).
 
+**n8n** (and other machine clients that cannot do the browser sign-in) — API key:
+
+1. Issue a key (printed once, stored only as a hash):
+   `docker exec hti-mcp-kpi python /app/apikeys.py issue n8n --days 365 [--ip <n8n server IP>]`
+2. In n8n: an **MCP Client Tool** node → Endpoint `https://datamgt.esukh.mn/mcp`,
+   Server Transport **HTTP Streamable**, Authentication **Bearer Auth** → the key.
+3. `apikeys.py list` shows keys and expiry; `apikeys.py revoke n8n` stops it immediately.
+
+A key gets the same read-only tools and limits as an OAuth client; calls are audited and
+rate-limited as `apikey:<name>`. With `--ip`, the key only works from that address.
+
 The SSH-tunnel path (`127.0.0.1:8765` + static `MCP_TOKEN`) was removed on 2026-10-14. The
 static token now works only from inside the private Docker networks (operator tests).
 Tokens issued before 2026-10-14 11:00 UTC stopped working when token storage moved to

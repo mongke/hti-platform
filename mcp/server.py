@@ -48,7 +48,7 @@ from starlette.responses import JSONResponse
 
 import kpis as K
 import sqlcheck
-from auth import SCOPE, VIA_PROXY, HtiOAuthProvider, login_routes
+from auth import CLIENT_IP, SCOPE, VIA_PROXY, HtiOAuthProvider, login_routes
 
 LOG = logging.getLogger("hti-kpi-mcp")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -499,12 +499,14 @@ class ProxyMarker:
         self.inner = inner
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
-            internal = not any(k == b"x-forwarded-for" for k, _ in scope.get("headers", []))
-            tok = VIA_PROXY.set(not internal)
+            xff = next((v for k, v in scope.get("headers", []) if k == b"x-forwarded-for"), None)
+            tok = VIA_PROXY.set(xff is not None)
+            ip = CLIENT_IP.set(xff.decode("latin-1").split(",")[0].strip() if xff else "")
             try:
                 return await self.inner(scope, receive, send)
             finally:
                 VIA_PROXY.reset(tok)
+                CLIENT_IP.reset(ip)
         return await self.inner(scope, receive, send)
 
 app = ProxyMarker(mcp.streamable_http_app())

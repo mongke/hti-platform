@@ -16,6 +16,12 @@ Hardened 2026-10-14 (MCP security best practices, OWASP MCP guide):
   * codes and tokens are stored as SHA-256 hashes, not in plaintext
   * global lockout (30 failures/hour) on top of the per-IP one
   * sign-in page: every dynamic value HTML-escaped; no framing, no scripts, no caching
+
+API keys (2026-10-22), for machine clients that cannot do the browser OAuth flow
+(n8n's MCP Client node): `Authorization: Bearer htik_...`. One key per integration,
+stored only as SHA-256, with an expiry and an optional client-IP allowlist; usable
+on the public endpoint with the same read-only scope, audited and rate-limited as
+client "apikey:<name>". Issue / list / revoke with apikeys.py (docker exec).
 """
 from __future__ import annotations
 import contextvars, hashlib, html, json, os, secrets, sqlite3, time, hmac
@@ -39,6 +45,9 @@ GLOBAL_FAILS, GLOBAL_WINDOW = 30, 3600
 # Set per request by ProxyMarker (server.py): True when the request came through Caddy.
 # Default True = treat as public unless proven internal.
 VIA_PROXY: contextvars.ContextVar[bool] = contextvars.ContextVar("via_proxy", default=True)
+# Client IP as Caddy saw it (first X-Forwarded-For hop), set by ProxyMarker; "" = internal.
+CLIENT_IP: contextvars.ContextVar[str] = contextvars.ContextVar("client_ip", default="")
+API_KEY_PREFIX = "htik_"
 
 def _h(token: str) -> str:
     """Codes and tokens are stored under their SHA-256, never in plaintext."""
@@ -164,10 +173,45 @@ class HtiOAuthProvider(OAuthAuthorizationServerProvider):
             if VIA_PROXY.get():
                 return None
             return AccessToken(token=token, client_id="static-operator", scopes=[SCOPE], expires_at=None)
+        if token.startswith(API_KEY_PREFIX):
+            return self._api_key(token)
         d = self.db.get("access", _h(token))
         if not d or (d.get("resource") and str(d["resource"]).rstrip("/") not in self.audiences):
             return None
         return AccessToken.model_validate({**d, "token": token})
+
+    # ---- API keys (machine clients, e.g. n8n)
+    def _api_key(self, token: str) -> AccessToken | None:
+        d = self.db.get("apikey", _h(token))
+        if not d:
+            return None
+        if d.get("expires_at") and d["expires_at"] < time.time():
+            return None
+        if d.get("ips") and CLIENT_IP.get() not in d["ips"]:
+            return None
+        return AccessToken(token=token, client_id=f"apikey:{d['name']}", scopes=[SCOPE],
+                           expires_at=int(d["expires_at"]) if d.get("expires_at") else None,
+                           resource=self.public_url + "/mcp")
+
+    def issue_api_key(self, name: str, days: int, ips: list[str]) -> str:
+        if self.db.get("apikey_name", name):
+            raise ValueError(f"an API key named {name!r} exists - revoke it first")
+        key = API_KEY_PREFIX + secrets.token_urlsafe(32)
+        rec = {"name": name, "created": time.time(), "expires_at": time.time() + days * 86400 if days else None, "ips": ips}
+        self.db.put("apikey", _h(key), rec)
+        self.db.put("apikey_name", name, {"hash": _h(key), **rec})
+        return key
+
+    def revoke_api_key(self, name: str) -> bool:
+        d = self.db.get("apikey_name", name)
+        if not d:
+            return False
+        self.db.delete("apikey", d["hash"]); self.db.delete("apikey_name", name)
+        return True
+
+    def list_api_keys(self) -> list[dict]:
+        rows = self.db.c.execute("SELECT v FROM kv WHERE ns='apikey_name'").fetchall()
+        return [{k: v for k, v in json.loads(r[0]).items() if k != "hash"} for r in rows]
 
     async def revoke_token(self, token: AccessToken | RefreshToken) -> None:
         self.db.delete("access", _h(token.token)); self.db.delete("refresh", _h(token.token))
