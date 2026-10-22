@@ -24,7 +24,7 @@ on the public endpoint with the same read-only scope, audited and rate-limited a
 client "apikey:<name>". Issue / list / revoke with apikeys.py (docker exec).
 """
 from __future__ import annotations
-import contextvars, hashlib, html, json, os, secrets, sqlite3, time, hmac
+import contextvars, hashlib, html, ipaddress, json, os, secrets, sqlite3, time, hmac
 from typing import Any
 from urllib.parse import urlencode, urlparse
 
@@ -52,6 +52,15 @@ API_KEY_PREFIX = "htik_"
 def _h(token: str) -> str:
     """Codes and tokens are stored under their SHA-256, never in plaintext."""
     return hashlib.sha256(token.encode()).hexdigest()
+
+def _ip_allowed(ip: str, allow: list[str]) -> bool:
+    """True if ip is in any allowlisted address or CIDR range (e.g. 4.165.103.112/28)."""
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    return any(addr in ipaddress.ip_network(a, strict=False) for a in allow)
+
 
 def redirect_ok(uri: str) -> bool:
     u = urlparse(str(uri))
@@ -187,7 +196,7 @@ class HtiOAuthProvider(OAuthAuthorizationServerProvider):
             return None
         if d.get("expires_at") and d["expires_at"] < time.time():
             return None
-        if d.get("ips") and CLIENT_IP.get() not in d["ips"]:
+        if d.get("ips") and not _ip_allowed(CLIENT_IP.get(), d["ips"]):
             return None
         return AccessToken(token=token, client_id=f"apikey:{d['name']}", scopes=[SCOPE],
                            expires_at=int(d["expires_at"]) if d.get("expires_at") else None,
@@ -201,6 +210,18 @@ class HtiOAuthProvider(OAuthAuthorizationServerProvider):
         self.db.put("apikey", _h(key), rec)
         self.db.put("apikey_name", name, {"hash": _h(key), **rec})
         return key
+
+    def set_api_key_ips(self, name: str, ips: list[str]) -> bool:
+        """Change a key's client-IP allowlist (addresses or CIDR ranges) without re-issuing it."""
+        for ip in ips:
+            ipaddress.ip_network(ip, strict=False)          # reject typos before saving
+        d = self.db.get("apikey_name", name)
+        if not d:
+            return False
+        rec = self.db.get("apikey", d["hash"]) or {}
+        rec["ips"] = ips; d["ips"] = ips
+        self.db.put("apikey", d["hash"], rec); self.db.put("apikey_name", name, d)
+        return True
 
     def revoke_api_key(self, name: str) -> bool:
         d = self.db.get("apikey_name", name)

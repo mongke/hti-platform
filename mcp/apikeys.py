@@ -3,6 +3,7 @@
     docker exec hti-mcp-kpi python /app/apikeys.py issue n8n --days 365 [--ip 1.2.3.4 ...]
     docker exec hti-mcp-kpi python /app/apikeys.py list
     docker exec hti-mcp-kpi python /app/apikeys.py revoke n8n
+    docker exec hti-mcp-kpi python /app/apikeys.py set-ips n8n --ip 4.165.103.112/28 --ip ...
 
 The key is printed ONCE at issue time and stored only as a SHA-256 hash.
 """
@@ -16,10 +17,14 @@ def main() -> int:
     i.add_argument("--ip", action="append", default=[], help="only accept the key from this client IP (repeatable)")
     sub.add_parser("list")
     r = sub.add_parser("revoke"); r.add_argument("name")
+    si = sub.add_parser("set-ips", help="replace a key's IP allowlist (addresses or CIDR); no --ip = any IP")
+    si.add_argument("name"); si.add_argument("--ip", action="append", default=[])
     a = ap.parse_args()
     p = HtiOAuthProvider(os.environ.get("MCP_PUBLIC_URL", "https://datamgt.esukh.mn"), None)
     if a.cmd == "issue":
         print(p.issue_api_key(a.name, a.days, a.ip)); return 0
+    if a.cmd == "set-ips":
+        ok = p.set_api_key_ips(a.name, a.ip); print("updated" if ok else "no such key"); return 0 if ok else 1
     if a.cmd == "revoke":
         ok = p.revoke_api_key(a.name); print("revoked" if ok else "no such key"); return 0 if ok else 1
     for k in p.list_api_keys():

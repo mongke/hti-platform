@@ -33,6 +33,10 @@ names the client and the site the code goes to. Sign in only if you started it.
 2. In n8n: an **MCP Client Tool** node → Endpoint `https://datamgt.esukh.mn/mcp`,
    Server Transport **HTTP Streamable**, Authentication **Bearer Auth** → the key.
 3. `apikeys.py list` shows keys and expiry; `apikeys.py revoke n8n` stops it immediately.
+4. `apikeys.py set-ips n8n --ip <addr or CIDR> ...` locks a key to client IPs without re-issuing it.
+   The n8n key is locked to n8n Cloud's published egress ranges (docs.n8n.io/manage-cloud/cloud-ip,
+   2026-10-22). n8n may add ranges without notice: if n8n starts getting 401, compare that page
+   with `apikeys.py list` and re-run `set-ips` with the new list.
 
 A key gets the same read-only tools and limits as an OAuth client; calls are audited and
 rate-limited as `apikey:<name>`. With `--ip`, the key only works from that address.
